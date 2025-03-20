@@ -7,10 +7,6 @@ license = "MIT OR Apache-2.0"
 authors = ["kinkard"]
 repository = "https://github.com/kinkard/valhalla-debug"
 
-[workspace]
-resolver = "2"
-members = ["libvalhalla"]
-
 [profile.release]
 strip = true
 lto = "thin"

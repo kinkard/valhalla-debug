@@ -2,37 +2,36 @@ FROM rust:slim-bookworm AS builder
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  # Required for tokio and reqwest via `openssl-sys`
-  libssl-dev \
-  pkg-config \
-  # For some reason GCC fails to compile valhalla so we use clang instead
-  clang \
-  # Valhalla build dependencies
-  build-essential \
-  cmake \
-  libboost-dev \
-  liblz4-dev \
-  libprotobuf-dev \
-  protobuf-compiler \
-  zlib1g-dev
+    # Required for tokio and reqwest via `openssl-sys`
+    libssl-dev \
+    pkg-config \
+    # For some reason GCC fails to compile valhalla so we use clang instead
+    clang \
+    # Valhalla build dependencies
+    build-essential \
+    cmake \
+    libboost-dev \
+    liblz4-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    zlib1g-dev
 
 ENV CC=clang CXX=clang++
 
 WORKDIR /usr/src/app
 
+# One day it would be a nice stand-alone crate, but for now we just copy the source
+COPY libvalhalla ./libvalhalla
+
 # First build a dummy target to cache dependencies in a separate Docker layer
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo 'fn main() { println!("Dummy image called!"); }' > src/main.rs
-# And for every other target in the workspace
-COPY libvalhalla/Cargo.toml ./libvalhalla/
-RUN mkdir -p libvalhalla/src && touch libvalhalla/src/lib.rs
 RUN cargo build --release
 
 # Now build the real target
 COPY src ./src
-COPY libvalhalla ./libvalhalla
 # Update modified attribute as otherwise cargo won't rebuild it
-RUN touch -a -m ./src/main.rs ./libvalhalla/src/lib.rs
+RUN touch -a -m ./src/main.rs
 RUN cargo build --release
 
 FROM debian:bookworm-slim AS runner
