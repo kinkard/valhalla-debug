@@ -268,30 +268,114 @@
             },
           ];
 
+          // Create a unique ID for this popup
+          const popupId = `popup-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
           sendValhallaRequest("locate", locations, { verbose: true })
             .then((response) => response.json())
             .then((data) => {
-              let edge;
+              let edges = [];
+              let currentEdgeIndex = 0;
               let popup_coord;
+
               try {
-                edge = data[0]["edges"][0];
-                popup_coord = [edge["correlated_lon"], edge["correlated_lat"]];
-              } catch {
-                edge = data;
+                edges = data[0]["edges"].slice(0, 4); // Limit to 4 edges
+                if (edges.length === 0) throw new Error("No edges found");
+                popup_coord = [edges[0]["correlated_lon"], edges[0]["correlated_lat"]];
+              } catch (error) {
+                edges = [data];
                 popup_coord = e.lngLat;
               }
-              const popupContent = `<div class="popup-content">
-                  <pre>${JSON.stringify(edge, null, 2)}</pre>
-              </div>`;
-              new mapboxgl.Popup().setLngLat(popup_coord).setHTML(popupContent).addTo(map);
 
+              const createPopupContent = (index) => {
+                const edge = edges[index];
+                const totalEdges = edges.length;
+
+                // Create pagination controls if there's more than one edge
+                let paginationControls = "";
+                if (totalEdges > 1) {
+                  paginationControls = `
+                    <div style="margin-top: 10px; padding: 5px 0; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ccc;">
+                      <button id="prev-edge-${popupId}" style="padding: 2px 4px; margin: 0; min-width: 20px;" ${index === 0 ? "disabled" : ""}>←</button>
+                      <span style="display: inline-block; white-space: nowrap;">${index + 1} of ${totalEdges}</span>
+                      <button id="next-edge-${popupId}" style="padding: 2px 4px; margin: 0; min-width: 20px;" ${index === totalEdges - 1 ? "disabled" : ""}>→</button>
+                    </div>
+                  `;
+                }
+
+                return `<div class="popup-content">
+                  <div style="overflow-y: auto; max-height: 350px;">
+                    <pre>${JSON.stringify(edge, null, 2)}</pre>
+                  </div>
+                  ${paginationControls}
+                </div>`;
+              };
+
+              // Create and display the popup
+              const popup = new mapboxgl.Popup({ maxWidth: "300px" })
+                .setLngLat(popup_coord)
+                .setHTML(createPopupContent(currentEdgeIndex))
+                .addTo(map);
+
+              // Draw the first edge
               map.getSource("locate-edge").setData({
                 type: "Feature",
                 geometry: {
                   type: "LineString",
-                  coordinates: decodePolyline6(edge["edge_info"]["shape"]),
+                  coordinates: decodePolyline6(edges[currentEdgeIndex]["edge_info"]["shape"]),
                 },
               });
+
+              // Helper function to attach event listeners after HTML content changes
+              function attachEventListeners() {
+                const prevButton = document.getElementById(`prev-edge-${popupId}`);
+                const nextButton = document.getElementById(`next-edge-${popupId}`);
+
+                if (prevButton) {
+                  prevButton.addEventListener("click", () => {
+                    if (currentEdgeIndex > 0) {
+                      currentEdgeIndex--;
+                      popup.setHTML(createPopupContent(currentEdgeIndex));
+
+                      // Update the displayed edge on the map
+                      map.getSource("locate-edge").setData({
+                        type: "Feature",
+                        geometry: {
+                          type: "LineString",
+                          coordinates: decodePolyline6(edges[currentEdgeIndex]["edge_info"]["shape"]),
+                        },
+                      });
+
+                      // Reattach event listeners
+                      setTimeout(attachEventListeners, 0);
+                    }
+                  });
+                }
+
+                if (nextButton) {
+                  nextButton.addEventListener("click", () => {
+                    if (currentEdgeIndex < edges.length - 1) {
+                      currentEdgeIndex++;
+                      popup.setHTML(createPopupContent(currentEdgeIndex));
+
+                      // Update the displayed edge on the map
+                      map.getSource("locate-edge").setData({
+                        type: "Feature",
+                        geometry: {
+                          type: "LineString",
+                          coordinates: decodePolyline6(edges[currentEdgeIndex]["edge_info"]["shape"]),
+                        },
+                      });
+
+                      // Reattach event listeners
+                      setTimeout(attachEventListeners, 0);
+                    }
+                  });
+                }
+              }
+
+              // Wait for the popup to be added to the DOM
+              setTimeout(attachEventListeners, 0);
             })
             .catch((err) => {
               console.error("Bad /locate response: ", err);
