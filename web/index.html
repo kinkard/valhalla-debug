@@ -143,8 +143,24 @@
             "line-cap": "round",
           },
           paint: {
-            "line-color": "#007AFF",
-            "line-width": 9,
+            "line-color": [
+              "case",
+              ["get", "primary"],
+              "#007AFF", // Primary route color (blue)
+              "#888888", // Alternative routes color (gray)
+            ],
+            "line-width": [
+              "case",
+              ["get", "primary"],
+              9, // Primary route width
+              7, // Alternative routes width
+            ],
+            "line-opacity": [
+              "case",
+              ["get", "primary"],
+              0.8, // Primary route opacity
+              0.6, // Alternative routes opacity
+            ],
           },
         });
 
@@ -415,13 +431,35 @@
           sendValhallaRequest("route", locations, {})
             .then((response) => response.json())
             .then((data) => {
-              // Draw route polyline
-              map.getSource("route").setData({
-                type: "Feature",
-                geometry: {
-                  type: "LineString",
-                  coordinates: data["trip"]["legs"].map((leg) => decodePolyline6(leg["shape"])).flat(),
+              let features = [
+                {
+                  type: "Feature",
+                  geometry: {
+                    type: "LineString",
+                    coordinates: data["trip"]["legs"].map((leg) => decodePolyline6(leg["shape"])).flat(),
+                  },
+                  properties: {
+                    primary: true,
+                  },
                 },
+              ];
+
+              data.alternates?.forEach((alternate, index) => {
+                features.push({
+                  type: "Feature",
+                  geometry: {
+                    type: "LineString",
+                    coordinates: alternate["trip"]["legs"].map((leg) => decodePolyline6(leg["shape"])).flat(),
+                  },
+                  properties: {
+                    primary: false,
+                  },
+                });
+              });
+
+              map.getSource("route").setData({
+                type: "FeatureCollection",
+                features: features,
               });
 
               // Show route summary
