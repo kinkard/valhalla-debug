@@ -61,6 +61,13 @@ fn main() {
 }
 
 async fn run(config: Config) {
+    let graph_reader = config
+        .valhalla_config_path
+        .and_then(|path| libvalhalla::GraphReader::new(path.into()));
+    if graph_reader.is_some() {
+        info!("Loaded Valhalla tiles. Traffic functionality is awailable!")
+    }
+
     // build our application with a route
     let app = Router::new()
         .route("/", get(serve_index_html))
@@ -70,9 +77,7 @@ async fn run(config: Config) {
             http_client: reqwest::Client::new(),
             mapbox_access_token: config.mapbox_access_token.into(),
             valhalla_url: config.valhalla_url.into(),
-            graph_reader: config
-                .valhalla_config_path
-                .map(|path| libvalhalla::GraphReader::new(path.into())),
+            graph_reader,
         });
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", config.port))
