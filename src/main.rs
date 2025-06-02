@@ -72,7 +72,7 @@ async fn run(config: Config) {
     let app = Router::new()
         .route("/", get(serve_index_html))
         .route("/api/request", post(forward_request))
-        .route("/api/traffic/:bbox", get(traffic))
+        .route("/api/traffic/{bbox}", get(traffic))
         .with_state(AppState {
             http_client: reqwest::Client::new(),
             mapbox_access_token: config.mapbox_access_token.into(),
@@ -170,6 +170,7 @@ async fn traffic(
             "Bad bbox, expecting 'min_lat,min_lon;max_lat,max_lon'".to_string(),
         ));
     };
+    info!("Reading traffic for {bbox:?}");
 
     let Some(reader) = &state.graph_reader else {
         return Err((
