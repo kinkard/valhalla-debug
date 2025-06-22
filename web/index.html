@@ -119,6 +119,7 @@
       const map = new mapboxgl.Map({
         container: "map",
         style: "mapbox://styles/mapbox/streets-v11",
+        // these are default values that might be overridden by URL hash
         center: [13.15792, 55.668221],
         zoom: 11,
       });
@@ -660,6 +661,128 @@
 
         return coordinates;
       }
+
+      // Class that manages map state and updates URL hash
+      class MapStateManager {
+        constructor(map) {
+          this.map = map;
+          this.updateTimeout = null;
+          this.init();
+        }
+
+        init() {
+          // Load initial state from URL
+          this.loadStateFromURL();
+
+          // Listen for map changes
+          this.map.on("moveend", () => this.scheduleURLUpdate());
+          this.map.on("zoomend", () => this.scheduleURLUpdate());
+
+          // Listen for browser back/forward
+          window.addEventListener("popstate", (event) => {
+            if (event.state && event.state.mapState) {
+              this.applyMapState(event.state.mapState, false);
+            } else {
+              this.loadStateFromURL();
+            }
+          });
+        }
+
+        scheduleURLUpdate() {
+          // Debounce URL updates to avoid too many history entries
+          if (this.updateTimeout) {
+            clearTimeout(this.updateTimeout);
+          }
+          this.updateTimeout = setTimeout(() => {
+            this.updateURL();
+          }, 500);
+        }
+
+        loadStateFromURL() {
+          const hash = window.location.hash;
+          if (hash.startsWith("#map=")) {
+            const mapParams = hash.substring(5); // Remove '#map='
+            const parts = mapParams.split("/");
+
+            if (parts.length >= 3) {
+              const zoom = parseFloat(parts[0]);
+              const lat = parseFloat(parts[1]);
+              const lng = parseFloat(parts[2]);
+
+              if (!isNaN(zoom) && !isNaN(lat) && !isNaN(lng)) {
+                this.applyMapState({ zoom, lat, lng }, false);
+                return;
+              }
+            }
+          }
+
+          // If no valid hash found, use default view
+          this.applyMapState(
+            {
+              zoom: 11,
+              lat: 55.668221,
+              lng: 13.15792,
+            },
+            false,
+          );
+        }
+
+        applyMapState(state, updateHistory = true) {
+          // Temporarily disable event listeners to prevent recursive updates
+          this.map.off("moveend", this.scheduleURLUpdate);
+          this.map.off("zoomend", this.scheduleURLUpdate);
+
+          this.map.setCenter([state.lng, state.lat]);
+          this.map.setZoom(state.zoom);
+
+          // Re-enable event listeners after a short delay
+          setTimeout(() => {
+            this.map.on("moveend", () => this.scheduleURLUpdate());
+            this.map.on("zoomend", () => this.scheduleURLUpdate());
+          }, 100);
+
+          if (updateHistory) {
+            this.updateURL(state);
+          }
+        }
+
+        getCurrentMapState() {
+          const center = this.map.getCenter();
+          const zoom = this.map.getZoom();
+
+          return {
+            zoom: Math.round(zoom * 100) / 100, // Round to 2 decimal places
+            lat: Math.round(center.lat * 1000000) / 1000000, // Round to 6 decimal places
+            lng: Math.round(center.lng * 1000000) / 1000000, // Round to 6 decimal places
+          };
+        }
+
+        updateURL(state = null) {
+          if (!state) {
+            state = this.getCurrentMapState();
+          }
+
+          const hash = `#map=${state.zoom}/${state.lat}/${state.lng}`;
+
+          // Update URL without triggering page reload
+          if (window.location.hash !== hash) {
+            // Push state to history for back/forward navigation
+            window.history.pushState(
+              { mapState: state },
+              "",
+              `${window.location.pathname}${window.location.search}${hash}`,
+            );
+          }
+        }
+
+        // Method to get shareable URL
+        getShareableURL() {
+          const state = this.getCurrentMapState();
+          const baseURL = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+          return `${baseURL}#map=${state.zoom}/${state.lat}/${state.lng}`;
+        }
+      }
+      const mapStateManager = new MapStateManager(map);
 
       // Class that manages locations and markers and updates them and UI on every change
       class LocationsManager {
