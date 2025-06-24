@@ -676,7 +676,6 @@
 
           // Listen for map changes
           this.map.on("moveend", () => this.scheduleURLUpdate());
-          this.map.on("zoomend", () => this.scheduleURLUpdate());
 
           // Listen for browser back/forward
           window.addEventListener("popstate", (event) => {
@@ -695,7 +694,7 @@
           }
           this.updateTimeout = setTimeout(() => {
             this.updateURL();
-          }, 500);
+          }, 100);
         }
 
         loadStateFromURL() {
@@ -730,7 +729,6 @@
         applyMapState(state, updateHistory = true) {
           // Temporarily disable event listeners to prevent recursive updates
           this.map.off("moveend", this.scheduleURLUpdate);
-          this.map.off("zoomend", this.scheduleURLUpdate);
 
           this.map.setCenter([state.lng, state.lat]);
           this.map.setZoom(state.zoom);
@@ -738,7 +736,6 @@
           // Re-enable event listeners after a short delay
           setTimeout(() => {
             this.map.on("moveend", () => this.scheduleURLUpdate());
-            this.map.on("zoomend", () => this.scheduleURLUpdate());
           }, 100);
 
           if (updateHistory) {
