@@ -8,11 +8,11 @@ use axum::{
     routing::{get, post},
 };
 use clap::Parser;
-use libvalhalla::{GraphLevel, LatLon};
 use serde::Deserialize;
 use serde_json::Value;
 use tokio::{fs::File, io::AsyncReadExt, signal};
 use tracing::info;
+use valhalla::{GraphLevel, GraphReader, LatLon};
 
 #[derive(Parser)]
 struct Config {
@@ -39,7 +39,7 @@ struct AppState {
     http_client: reqwest::Client,
     mapbox_access_token: Arc<str>,
     valhalla_url: Arc<str>,
-    graph_reader: Option<libvalhalla::GraphReader>,
+    graph_reader: Option<GraphReader>,
 }
 
 fn main() {
@@ -63,7 +63,7 @@ fn main() {
 async fn run(config: Config) {
     let graph_reader = config
         .valhalla_config_path
-        .and_then(|path| libvalhalla::GraphReader::new(path.into()));
+        .and_then(|path| GraphReader::new(path.into()));
     if graph_reader.is_some() {
         info!("Loaded Valhalla tiles. Traffic functionality is awailable!")
     }

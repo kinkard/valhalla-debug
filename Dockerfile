@@ -25,9 +25,6 @@ ENV CC=clang CXX=clang++
 
 WORKDIR /usr/src/app
 
-# One day it would be a nice stand-alone crate, but for now we just copy the source
-COPY libvalhalla ./libvalhalla
-
 # First build a dummy target to cache dependencies in a separate Docker layer
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo 'fn main() { println!("Dummy image called!"); }' > src/main.rs
