@@ -2,7 +2,7 @@ use std::{collections::HashMap, num::NonZero, sync::Arc, time::Instant};
 
 use axum::{
     Json, Router,
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::Html,
     routing::{get, post},
@@ -61,9 +61,7 @@ fn main() {
 }
 
 async fn run(config: Config) {
-    let graph_reader = config
-        .valhalla_config_path
-        .and_then(|path| GraphReader::new(path.into()));
+    let graph_reader = config.valhalla_config_path.and_then(GraphReader::from_file);
     if graph_reader.is_some() {
         info!("Loaded Valhalla tiles. Traffic functionality is awailable!")
     }
@@ -160,9 +158,24 @@ async fn forward_request(
         .map_err(|err| (StatusCode::BAD_REQUEST, err.to_string()))
 }
 
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum SpeedSource {
+    #[default]
+    Live,
+    Day,
+    Night,
+}
+
+#[derive(Default, Deserialize)]
+struct TrafficQuery {
+    source: SpeedSource,
+}
+
 async fn traffic(
     State(state): State<AppState>,
     Path(bbox): Path<String>,
+    Query(query): Query<TrafficQuery>,
 ) -> Result<Json<Value>, (StatusCode, String)> {
     let Some(bbox) = parse_bbox(&bbox) else {
         return Err((
@@ -189,15 +202,37 @@ async fn traffic(
             if *count < 20 { Some(tiles) } else { None }
         })
         .flatten()
-        .flat_map(|tile_id| {
-            // todo: this is really heavy compute operation
-            reader.get_tile_traffic_flows(tile_id)
+        .flat_map(|tile_id| reader.get_tile(tile_id))
+        // todo: this is really heavy compute operation
+        .flat_map(|tile| {
+            tile.directededges()
+                .iter()
+                .filter_map(|edge| {
+                    match query.source {
+                        SpeedSource::Live => tile.live_speed(edge),
+                        SpeedSource::Day => {
+                            let s = edge.constrained_flow_speed();
+                            if s == 0 { None } else { Some(s) }
+                        }
+                        SpeedSource::Night => {
+                            let s = edge.free_flow_speed();
+                            if s == 0 { None } else { Some(s) }
+                        }
+                    }
+                    .map(|speed| {
+                        (
+                            tile.edgeinfo(edge).shape,
+                            speed as f32 / edge.speed() as f32,
+                        )
+                    })
+                })
+                .collect::<Vec<_>>()
         })
-        .map(|edge| {
+        .map(|(shape, normalized_speed)| {
             (
-                edge.shape,
+                shape,
                 // Convert normalized speed [0.0, 1.0] to a jam factor [10.0, 0.0]
-                10 - (edge.normalized_speed * 10.0).round() as i32,
+                10 - (normalized_speed * 10.0).round() as i32,
             )
         })
         .collect::<HashMap<_, _>>();
