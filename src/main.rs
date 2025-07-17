@@ -61,7 +61,10 @@ fn main() {
 }
 
 async fn run(config: Config) {
-    let graph_reader = config.valhalla_config_path.and_then(GraphReader::from_file);
+    let graph_reader = config
+        .valhalla_config_path
+        .and_then(|path| valhalla::Config::from_file(path).ok())
+        .and_then(|cfg| GraphReader::new(&cfg).ok());
     if graph_reader.is_some() {
         info!("Loaded Valhalla tiles. Traffic functionality is awailable!")
     }
@@ -246,8 +249,8 @@ async fn traffic(
 
 fn parse_coordinate(coord: &str) -> Option<LatLon> {
     let (lat, lon) = coord.split_once(',')?;
-    let lat = lat.parse::<f32>().ok()?;
-    let lon = lon.parse::<f32>().ok()?;
+    let lat = lat.parse::<f64>().ok()?;
+    let lon = lon.parse::<f64>().ok()?;
     Some(LatLon(lat, lon))
 }
 
