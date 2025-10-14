@@ -5,7 +5,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       # No checkout step here because build-push-action uses git context by default:
       # https://github.com/marketplace/actions/build-and-push-docker-images#git-context

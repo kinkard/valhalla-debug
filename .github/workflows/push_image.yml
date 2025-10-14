@@ -9,7 +9,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       # No checkout step here because build-push-action uses git context by default:
       # https://github.com/marketplace/actions/build-and-push-docker-images#git-context
@@ -23,7 +23,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/arm64,linux/amd64
+          platforms: linux/arm64
           push: true
           tags: kinkard/valhalla-debug:latest
           cache-from: type=gha
