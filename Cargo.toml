@@ -20,4 +20,4 @@ serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "fs", "signal"] }
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
-valhalla = "0.5"
+valhalla = "0.6"

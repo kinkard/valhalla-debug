@@ -205,7 +205,7 @@ async fn traffic(
             if *count < 20 { Some(tiles) } else { None }
         })
         .flatten()
-        .flat_map(|tile_id| reader.get_tile(tile_id))
+        .flat_map(|tile_id| reader.graph_tile(tile_id))
         // todo: this is really heavy compute operation
         .flat_map(|tile| {
             tile.directededges()

@@ -1,8 +1,4 @@
-# Valhalla relies on protobuf dynamic library that should match in both build and runtime environments.
-# It would probably be easy just to use `libprotobuf-dev` in both places, but `libprotobuf-lite32` is much smaller.
-ARG protobuf_version=3.21.12-3
-
-FROM rust:slim-bookworm AS builder
+FROM rust:slim-trixie AS builder
 ARG protobuf_version
 
 # System dependencies
@@ -17,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     libboost-dev \
     liblz4-dev \
-    libprotobuf-dev=$protobuf_version \
+    libprotobuf-dev \
     protobuf-compiler \
     zlib1g-dev
 
@@ -36,12 +32,11 @@ COPY src ./src
 RUN touch -a -m ./src/main.rs
 RUN cargo build --release
 
-FROM debian:bookworm-slim AS runner
-ARG protobuf_version
+FROM debian:trixie-slim AS runner
 # Web page with map
 WORKDIR /usr
 COPY web ./web
 # Runtime dependency for tokio/reqwest and valhalla
-RUN apt-get update && apt-get install -y --no-install-recommends libssl3 libprotobuf-lite32=$protobuf_version
+RUN apt-get update && apt-get install -y --no-install-recommends libssl3 libprotobuf-lite32
 COPY --from=builder /usr/src/app/target/release/valhalla-debug /usr/local/bin/valhalla-debug
 ENTRYPOINT ["valhalla-debug"]
