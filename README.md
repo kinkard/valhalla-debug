@@ -19,8 +19,6 @@ Options:
           Port to listen [default: 3000]
       --concurrency <CONCURRENCY>
           Max threads to use [default: 4]
-      --mapbox-access-token <MAPBOX_ACCESS_TOKEN>
-          Mapbox access token to use in the frontend [env: MAPBOX_ACCESS_TOKE]
       --valhalla-url <VALHALLA_URL>
           Valhalla base url to send requests to [default: http://localhost:8002]
       --valhalla-config-path <VALHALLA_CONFIG_PATH>
@@ -33,12 +31,6 @@ Options:
 
 ```sh
 cargo run --release
-```
-
-Note: `MAPBOX_ACCESS_TOKEN` env variable is used for Mapbox GL JS, which can be set by following:
-
-```sh
-MAPBOX_ACCESS_TOKEN="my access token" cargo run --release
 ```
 
 ## License
