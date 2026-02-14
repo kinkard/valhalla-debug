@@ -3,8 +3,6 @@ ARG protobuf_version
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Required for reqwest via `openssl-sys`
-    libssl-dev \
     pkg-config \
     # LLVM toolchain for proper LTO support between Rust and C/C++
     clang \
@@ -40,7 +38,7 @@ FROM debian:trixie-slim AS runner
 # Web page with map
 WORKDIR /usr
 COPY web ./web
-# Runtime dependency for tokio/reqwest and valhalla
-RUN apt-get update && apt-get install -y --no-install-recommends libssl3 libprotobuf-lite32
+# Runtime dependency for valhalla
+RUN apt-get update && apt-get install -y --no-install-recommends libprotobuf-lite32
 COPY --from=builder /usr/src/app/target/release/valhalla-debug /usr/local/bin/valhalla-debug
 ENTRYPOINT ["valhalla-debug"]
