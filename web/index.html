@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <title>Valhalla Debug</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
       body {
         margin: 0;
@@ -182,10 +182,9 @@
     </div>
     <div id="map"></div>
     <script>
-      mapboxgl.accessToken = "{{MAPBOX_ACCESS_TOKEN}}";
-      const map = new mapboxgl.Map({
+      const map = new maplibregl.Map({
         container: "map",
-        style: "mapbox://styles/mapbox/streets-v11",
+        style: "https://tiles.openfreemap.org/styles/bright",
         // these are default values that might be overridden by URL hash
         center: [13.15792, 55.668221],
         zoom: 11,
@@ -402,7 +401,7 @@
               };
 
               // Create and display the popup
-              const popup = new mapboxgl.Popup({ maxWidth: "300px" })
+              const popup = new maplibregl.Popup({ maxWidth: "300px" })
                 .setLngLat(popup_coord)
                 .setHTML(createPopupContent(currentEdgeIndex))
                 .addTo(map);
@@ -469,7 +468,7 @@
             })
             .catch((err) => {
               console.error("Bad /locate response: ", err);
-              const popup = new mapboxgl.Popup()
+              const popup = new maplibregl.Popup()
                 .setLngLat(e.lngLat)
                 .setHTML(`<p>Bad <b>/locate</b> response: ${err.message}</p>`)
                 .addTo(map);
@@ -950,7 +949,7 @@
           this.markers.forEach((marker) => marker.remove());
           this.markers = this.locations.map((location, index) => {
             const color = index === 0 ? "green" : index === this.locations.length - 1 ? "red" : "gray";
-            const marker = new mapboxgl.Marker({ color: color, draggable: true })
+            const marker = new maplibregl.Marker({ color, draggable: true })
               .setLngLat([location.lon, location.lat])
               .addTo(this.map);
             marker.on("dragend", () => {

@@ -22,9 +22,6 @@ struct Config {
     /// Max threads to use
     #[arg(long, default_value_t = 4)]
     concurrency: u16,
-    /// Mapbox access token to use in the frontend
-    #[arg(long, env)]
-    mapbox_access_token: String,
     /// Valhalla base url to send requests to
     #[arg(long, default_value = "http://localhost:8002")]
     valhalla_url: String,
@@ -37,7 +34,6 @@ struct Config {
 #[derive(Clone)]
 struct AppState {
     http_client: reqwest::Client,
-    mapbox_access_token: Arc<str>,
     valhalla_url: Arc<str>,
     graph_reader: Option<GraphReader>,
 }
@@ -76,7 +72,6 @@ async fn run(config: Config) {
         .route("/api/traffic/{bbox}", get(traffic))
         .with_state(AppState {
             http_client: reqwest::Client::new(),
-            mapbox_access_token: config.mapbox_access_token.into(),
             valhalla_url: config.valhalla_url.into(),
             graph_reader,
         });
@@ -105,9 +100,7 @@ async fn run(config: Config) {
         .unwrap();
 }
 
-async fn serve_index_html(
-    State(state): State<AppState>,
-) -> Result<Html<String>, (StatusCode, String)> {
+async fn serve_index_html() -> Result<Html<String>, (StatusCode, String)> {
     let index_html = "web/index.html";
     let Ok(mut file) = File::open(index_html).await else {
         return Err((
@@ -124,7 +117,6 @@ async fn serve_index_html(
         ));
     }
 
-    let contents = contents.replace("{{MAPBOX_ACCESS_TOKEN}}", &state.mapbox_access_token);
     Ok(Html(contents))
 }
 
