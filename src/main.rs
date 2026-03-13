@@ -25,10 +25,12 @@ struct Config {
     /// Valhalla base url to send requests to
     #[arg(long, default_value = "http://localhost:8002")]
     valhalla_url: String,
-    /// Path to valhalla json config file.
-    /// Required for an access to valhalla graph information.
+    /// Path to Valhalla tileset tarball.
     #[arg(long)]
-    valhalla_config_path: Option<String>,
+    valhalla_tiles: Option<String>,
+    /// Path to valhalla traffic tarball.
+    #[arg(long)]
+    valhalla_traffic: Option<String>,
 }
 
 #[derive(Clone)]
@@ -58,8 +60,18 @@ fn main() {
 
 async fn run(config: Config) {
     let graph_reader = config
-        .valhalla_config_path
-        .and_then(|path| valhalla::Config::from_file(path).ok())
+        .valhalla_tiles
+        .map(|path| {
+            valhalla::ConfigBuilder {
+                mjolnir: valhalla::config::Mjolnir {
+                    tile_extract: path,
+                    traffic_extract: config.valhalla_traffic.unwrap_or_default(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+            .build()
+        })
         .and_then(|cfg| GraphReader::new(&cfg).ok());
     if graph_reader.is_some() {
         info!("Loaded Valhalla tiles. Traffic functionality is awailable!")
