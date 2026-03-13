@@ -21,8 +21,10 @@ Options:
           Max threads to use [default: 4]
       --valhalla-url <VALHALLA_URL>
           Valhalla base url to send requests to [default: http://localhost:8002]
-      --valhalla-config-path <VALHALLA_CONFIG_PATH>
-          Path to valhalla json config file. Required for an access to valhalla graph information
+      --valhalla-tiles <VALHALLA_TILES>
+          Path to Valhalla tileset tarball
+      --valhalla-traffic <VALHALLA_TRAFFIC>
+          Path to valhalla traffic tarball
   -h, --help
           Print help
 ```
