@@ -141,6 +141,69 @@
         background-color: #6c757d;
         cursor: not-allowed;
       }
+
+      .speed-tabs {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 4px;
+      }
+
+      .speed-tab {
+        padding: 2px 6px;
+        font-size: 10px;
+        font-family: monospace;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        background: #f5f5f5;
+        color: #666;
+      }
+
+      .speed-tab.active {
+        background: #007AFF;
+        color: white;
+        border-color: #007AFF;
+      }
+
+      .speed-chart {
+        margin-bottom: 8px;
+      }
+
+      .compact-field {
+        font-family: monospace;
+        font-size: 11px;
+        padding: 2px 4px;
+        line-height: 1.6;
+      }
+
+      .compact-field-label {
+        color: #555;
+        font-weight: bold;
+      }
+
+      .restriction-none {
+        color: #999;
+        font-style: italic;
+      }
+
+      .access-badge {
+        display: inline-block;
+        padding: 1px 4px;
+        margin: 1px;
+        border-radius: 2px;
+        font-size: 10px;
+      }
+
+      .access-badge-true {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      .access-badge-false {
+        background: #ffebee;
+        color: #c62828;
+        text-decoration: line-through;
+      }
     </style>
   </head>
 
@@ -394,7 +457,7 @@
 
                 return `<div class="popup-content">
                   <div style="overflow-y: auto; max-height: 350px;">
-                    <pre>${JSON.stringify(edge, null, 2)}</pre>
+                    ${renderEdgePopup(edge, popupId)}
                   </div>
                   ${paginationControls}
                 </div>`;
@@ -769,6 +832,137 @@
         }
 
         return coordinates;
+      }
+
+      // --- Locate popup rendering helpers ---
+
+      const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const BUCKETS_PER_DAY = 288; // 24h * 60min / 5min
+
+      window.switchSpeedTab = function (popupId, dayIndex) {
+        for (let i = 0; i < 7; i++) {
+          const chart = document.getElementById(`speed-day-${popupId}-${i}`);
+          const tab = document.getElementById(`speed-tab-${popupId}-${i}`);
+          if (chart) chart.style.display = i === dayIndex ? "block" : "none";
+          if (tab) tab.classList.toggle("active", i === dayIndex);
+        }
+      };
+
+      function renderSpeedChart(predictedSpeeds, popupId) {
+        if (!predictedSpeeds || predictedSpeeds.length === 0) return "";
+
+        const globalMin = Math.min(...predictedSpeeds);
+        const globalMax = Math.max(...predictedSpeeds);
+        const range = globalMax - globalMin || 1;
+
+        const W = 260, H = 70, PAD_LEFT = 28, PAD_BOTTOM = 14;
+        const chartW = W - PAD_LEFT, chartH = H - PAD_BOTTOM;
+
+        function buildDaySvg(dayIndex) {
+          const offset = dayIndex * BUCKETS_PER_DAY;
+          const dayData = predictedSpeeds.slice(offset, offset + BUCKETS_PER_DAY);
+          if (dayData.length === 0) return "";
+
+          // Build area path
+          const points = dayData.map((speed, i) => {
+            const x = PAD_LEFT + (i / (BUCKETS_PER_DAY - 1)) * chartW;
+            const y = chartH - ((speed - globalMin) / range) * (chartH - 4);
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          });
+
+          const linePath = `M${points.join("L")}`;
+          const areaPath = `${linePath}L${(PAD_LEFT + chartW).toFixed(1)},${chartH}L${PAD_LEFT},${chartH}Z`;
+
+          // Hour markers at 6h, 12h, 18h
+          const hourLines = [6, 12, 18]
+            .map((h) => {
+              const x = PAD_LEFT + (h / 24) * chartW;
+              return `<line x1="${x}" y1="0" x2="${x}" y2="${chartH}" stroke="#ddd" stroke-width="0.5"/>
+                <text x="${x}" y="${H - 1}" text-anchor="middle" font-size="8" fill="#999">${h}h</text>`;
+            })
+            .join("");
+
+          return `<svg id="speed-day-${popupId}-${dayIndex}" width="${W}" height="${H}"
+            style="display:${dayIndex === 0 ? "block" : "none"}">
+            ${hourLines}
+            <path d="${areaPath}" fill="rgba(0,122,255,0.2)" />
+            <path d="${linePath}" fill="none" stroke="#007AFF" stroke-width="1.5" />
+            <text x="${PAD_LEFT - 2}" y="10" text-anchor="end" font-size="8" fill="#999">${globalMax}</text>
+            <text x="${PAD_LEFT - 2}" y="${chartH}" text-anchor="end" font-size="8" fill="#999">${globalMin}</text>
+          </svg>`;
+        }
+
+        const tabs = DAY_NAMES.map(
+          (name, i) =>
+            `<span id="speed-tab-${popupId}-${i}" class="speed-tab${i === 0 ? " active" : ""}"
+              onclick="switchSpeedTab('${popupId}',${i})">${name}</span>`,
+        ).join("");
+
+        const charts = DAY_NAMES.map((_, i) => buildDaySvg(i)).join("");
+
+        return `<div class="speed-chart">
+          <div class="compact-field"><span class="compact-field-label">predicted_speeds:</span></div>
+          <div class="speed-tabs">${tabs}</div>
+          ${charts}
+        </div>`;
+      }
+
+      function renderAccessBadges(label, accessObj) {
+        if (!accessObj) return "";
+        const badges = Object.entries(accessObj)
+          .map(
+            ([mode, allowed]) =>
+              `<span class="access-badge access-badge-${allowed}">${mode}</span>`,
+          )
+          .join("");
+        return `<div class="compact-field"><span class="compact-field-label">${label}:</span> ${badges}</div>`;
+      }
+
+      function renderRestriction(label, restrictionObj) {
+        if (!restrictionObj) return "";
+        const trueKeys = Object.entries(restrictionObj)
+          .filter(([, v]) => v)
+          .map(([k]) => k);
+        const value =
+          trueKeys.length === 0
+            ? `<span class="restriction-none">none</span>`
+            : trueKeys.join(", ");
+        return `<div class="compact-field"><span class="compact-field-label">${label}:</span> ${value}</div>`;
+      }
+
+      function renderEdgePopup(edge, popupId) {
+        let speedHtml = "";
+        let compactHtml = "";
+
+        // Speed chart from top-level predicted_speeds
+        if (edge.predicted_speeds) {
+          speedHtml = renderSpeedChart(edge.predicted_speeds, popupId);
+        }
+
+        // Compact access/restriction from nested edge object
+        if (edge.edge) {
+          if (edge.edge.access) {
+            compactHtml += renderAccessBadges("access", edge.edge.access);
+          }
+          if (edge.edge.start_restriction) {
+            compactHtml += renderRestriction("start_restriction", edge.edge.start_restriction);
+          }
+          if (edge.edge.end_restriction) {
+            compactHtml += renderRestriction("end_restriction", edge.edge.end_restriction);
+          }
+        }
+
+        // Clone and remove rendered fields for JSON dump
+        const clone = structuredClone(edge);
+        delete clone.predicted_speeds;
+        if (clone.edge) {
+          delete clone.edge.access;
+          delete clone.edge.start_restriction;
+          delete clone.edge.end_restriction;
+        }
+
+        const jsonHtml = `<pre>${JSON.stringify(clone, null, 2)}</pre>`;
+        return `${compactHtml}${jsonHtml}${speedHtml}`;
       }
 
       // Class that manages map state and updates URL hash
