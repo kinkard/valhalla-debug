@@ -961,7 +961,9 @@
           delete clone.edge.end_restriction;
         }
 
-        const jsonHtml = `<pre>${JSON.stringify(clone, null, 2)}</pre>`;
+        const jsonStr = JSON.stringify(clone, null, 2)
+          .replace(/"way_id":\s*(\d+)/g, '"way_id": <a href="https://www.openstreetmap.org/way/$1" target="_blank" rel="noopener">$1</a>');
+        const jsonHtml = `<pre>${jsonStr}</pre>`;
         return `${compactHtml}${jsonHtml}${speedHtml}`;
       }
 
