@@ -216,7 +216,7 @@ async fn traffic(
                 .iter()
                 .filter_map(|edge| {
                     match query.source {
-                        SpeedSource::Live => tile.live_speed(edge),
+                        SpeedSource::Live => tile.live_traffic(edge).speed().map(u32::from),
                         SpeedSource::Day => {
                             let s = edge.constrained_flow_speed();
                             if s == 0 { None } else { Some(s) }
