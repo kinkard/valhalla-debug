@@ -1,6 +1,5 @@
 ARG RUST_VERSION=1.98
 FROM rust:${RUST_VERSION}-slim-trixie AS builder
-ARG protobuf_version
 
 # Rust 1.98 is built on LLVM 22: clang/lld must be the same major for `-Clinker-plugin-lto`, bump them together.
 ARG LLVM_VERSION=22
