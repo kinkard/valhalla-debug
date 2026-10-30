@@ -1,8 +1,8 @@
-ARG RUST_VERSION=1.98
+ARG RUST_VERSION=1.99
 FROM rust:${RUST_VERSION}-slim-trixie AS builder
 
-# Rust 1.98 is built on LLVM 22: clang/lld must be the same major for `-Clinker-plugin-lto`, bump them together.
-ARG LLVM_VERSION=22
+# Rust 1.99 is built on LLVM 23: clang/lld must be the same major for `-Clinker-plugin-lto`, bump them together.
+ARG LLVM_VERSION=23
 
 # LLVM toolchain from apt.llvm.org, as Debian trixie ships only LLVM 19
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gnupg \

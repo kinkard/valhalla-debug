@@ -12,7 +12,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use tokio::{fs::File, io::AsyncReadExt, signal};
 use tracing::info;
-use valhalla::{GraphLevel, GraphReader, LatLon};
+use valhalla::{DirectedEdge, GraphReader, GraphTile, LatLon, level};
 
 #[derive(Parser)]
 struct Config {
@@ -200,7 +200,7 @@ async fn traffic(
     };
 
     let begin = Instant::now();
-    let edges = [GraphLevel::Highway, GraphLevel::Arterial, GraphLevel::Local]
+    let edges = [level::HIGHWAY, level::ARTERIAL, level::LOCAL]
         .into_iter()
         .map(|level| reader.tiles_in_bbox(bbox.0, bbox.1, level))
         // Limit number of traffic tiles we fetch
@@ -226,12 +226,7 @@ async fn traffic(
                             if s == 0 { None } else { Some(s) }
                         }
                     }
-                    .map(|speed| {
-                        (
-                            tile.edgeinfo(edge).shape,
-                            speed as f32 / edge.speed() as f32,
-                        )
-                    })
+                    .map(|speed| (edge_shape(&tile, edge), speed as f32 / edge.speed() as f32))
                 })
                 .collect::<Vec<_>>()
         })
@@ -249,6 +244,17 @@ async fn traffic(
         begin.elapsed().as_millis()
     );
     Ok(Json(serde_json::to_value(edges).unwrap()))
+}
+
+/// Polyline6-encoded edge shape, in the direction of travel.
+fn edge_shape(tile: &GraphTile, edge: &DirectedEdge) -> String {
+    let shape = tile.edgeinfo(edge).shape().map(<(f64, f64)>::from);
+    if edge.forward() {
+        polyline_iter::encode(6, shape)
+    } else {
+        let points: Vec<_> = shape.collect();
+        polyline_iter::encode(6, points.into_iter().rev())
+    }
 }
 
 fn parse_coordinate(coord: &str) -> Option<LatLon> {

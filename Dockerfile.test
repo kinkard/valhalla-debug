@@ -1,10 +1,10 @@
 # An isolated environment for tests and sanity checks on CI
 
-ARG RUST_VERSION=1.98
+ARG RUST_VERSION=1.99
 FROM rust:${RUST_VERSION}-slim-trixie AS builder
 
-# Rust 1.98 is built on LLVM 22: clang/lld must be the same major for `-Clinker-plugin-lto`, bump them together.
-ARG LLVM_VERSION=22
+# Rust 1.99 is built on LLVM 23: clang/lld must be the same major for `-Clinker-plugin-lto`, bump them together.
+ARG LLVM_VERSION=23
 
 # Rust tools
 RUN rustup component add rustfmt clippy
@@ -16,8 +16,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  # Required for tokio and reqwest via `openssl-sys`
-  libssl-dev \
   pkg-config \
   clang-${LLVM_VERSION} \
   llvm-${LLVM_VERSION} \
