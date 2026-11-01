@@ -1,0 +1,160 @@
+/* Road speeds: the floating #panel-layers and the hover tooltip */
+
+#panel-layers {
+  max-width: calc(100% - 2 * var(--s3) - 40px);
+  font-size: var(--t-sm);
+}
+
+#panel-layers:has(.speeds-body) {
+  width: 300px;
+}
+
+.speeds-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  white-space: nowrap;
+  height: 32px;
+  padding: 0 var(--s3);
+  font: 600 var(--t-md) var(--font);
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+}
+
+.speeds-toggle::after {
+  content: "";
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--ink-3);
+  border-bottom: 1.5px solid var(--ink-3);
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.speeds-toggle[aria-expanded="true"]::after {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+.speeds-toggle:hover {
+  background: var(--fog);
+}
+
+.speeds-swatch {
+  flex: none;
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+.speeds-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s3);
+  border-top: 1px solid var(--rule);
+}
+
+.speeds-modes {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+}
+
+.speeds-modes button {
+  padding: 4px var(--s1);
+}
+
+.speeds-time {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.speeds-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.speeds-days button {
+  padding: 3px 0;
+}
+
+.speeds-time-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.speeds-time-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--sign);
+}
+
+.speeds-clock {
+  min-width: 3.2em;
+  font-weight: 600;
+  font-size: var(--t-md);
+  text-align: right;
+}
+
+.speeds-time-row .btn {
+  height: 24px;
+  padding: 0 var(--s2);
+  font-size: var(--t-sm);
+}
+
+.speeds-legend-caption {
+  margin-bottom: var(--s1);
+  color: var(--ink-2);
+  line-height: 1.25;
+}
+
+.speeds-bar {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.speeds-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+.speeds-note {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.speeds-tip-ratio {
+  margin-top: var(--s1);
+  padding-top: var(--s1);
+  border-top: 1px solid var(--rule);
+  color: var(--ink-2);
+}
+
+.speeds-note code {
+  font-size: var(--t-xs);
+  white-space: nowrap;
+}
+
+.speeds-closed-key {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: var(--s1);
+  font-size: var(--t-xs);
+  color: var(--ink-2);
+}
+
+.speeds-closed-key span {
+  width: 18px;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 6px);
+}

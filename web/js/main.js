@@ -5,6 +5,7 @@ import * as request from "./request.js";
 import * as waypoints from "./waypoints.js";
 import * as params from "./params.js";
 import * as routes from "./routes.js";
+import * as speeds from "./speeds.js";
 import * as profile from "./profile.js";
 
 const DEFAULT_VIEW = { zoom: 11, lat: 55.668221, lon: 13.15792 };
@@ -33,7 +34,7 @@ state.on("map", () => {
 });
 
 // Layer slots, bottom to top. A module adds its layers with `beforeId: app.slot(name)`.
-const SLOTS = ["routes", "highlight"];
+const SLOTS = ["speeds", "routes", "highlight"];
 
 const bus = new EventTarget();
 let statusTimer = null;
@@ -71,7 +72,7 @@ menu.add({
   run: ({ lngLat }) => app.copy(`${fixed(lngLat.lat)},${fixed(lngLat.lng)}`, "lat, lon"),
 });
 
-const modules = { waypoints, params, profile, routes };
+const modules = { waypoints, speeds, params, profile, routes };
 
 map.on("load", () => {
   for (const name of SLOTS) {

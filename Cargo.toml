@@ -15,9 +15,11 @@ lto = "thin"
 axum = "0.8"
 clap = { version = "4", features = ["derive", "env"] }
 maud = { version = "0.27", features = ["axum"] }
+pmtiles = { version = "0.26", default-features = false, features = ["write"] }
 polyline-iter = "0.4"
 prost = "0.14"
 reqwest = { version = "0.13", default-features = false, features = ["json"] }
+rustc-hash = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1", features = ["rt-multi-thread", "fs", "io-util", "signal"] }

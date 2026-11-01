@@ -8,6 +8,10 @@ why did the router pick this road, and why not that one?
   options. Options form fields are empty by default and show Valhalla's default as a placeholder,
   so only the options you change are sent and put into the URL.
 - **Compare alternates.** Time, distance and cost of each route side by side, the best of each in bold.
+- **See speeds.** "Road speeds" at the top right of the map (needs `--valhalla-tiles`): live traffic
+  (with `--valhalla-traffic`), predicted speeds at any 5-minute slot of the week, or typical day and
+  night speeds. Hover an edge for all its speeds. Served as vector tiles from
+  the tileset.
 
 ```
 $ ./valhalla-debug --help
@@ -20,6 +24,10 @@ Options:
           Max threads to use [default: 4]
       --valhalla-url <VALHALLA_URL>
           Valhalla base url to send requests to [default: http://localhost:8002]
+      --valhalla-tiles <VALHALLA_TILES>
+          Path to Valhalla tileset tarball. Enables speed tiles
+      --valhalla-traffic <VALHALLA_TRAFFIC>
+          Path to valhalla traffic tarball
       --web-dir <WEB_DIR>
           Directory with static web files [default: web]
   -h, --help
@@ -29,8 +37,11 @@ Options:
 ## Build & Run
 
 ```sh
-cargo run --release
+cargo run --release -- --valhalla-tiles /path/to/tiles.tar
 ```
+
+Point `--valhalla-url` at a Valhalla service that uses the same tileset. Without `--valhalla-tiles`
+routing and alternates still work, but speed tiles don't.
 
 ## URL format
 
