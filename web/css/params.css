@@ -1,0 +1,260 @@
+/* Request options panel: dense two-column label/field rows, collapsible groups separated by rules */
+
+#panel-params .panel-title {
+  align-items: center;
+}
+
+.params-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.params-reset-all {
+  height: 22px;
+  padding: 0 var(--s2);
+  font-size: var(--t-sm);
+}
+
+/* Costing selector: a segmented control wrapped into a 4 x 2 grid with hairline separators */
+.seg.params-costing {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  width: 100%;
+  margin-bottom: var(--s2);
+  background: var(--rule);
+}
+
+.seg.params-costing button {
+  border-left: 0;
+  padding: 4px 0;
+}
+
+#panel-params .seg button:not([aria-pressed="true"]):hover {
+  color: var(--ink);
+  background: var(--fog);
+}
+
+.prow {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 172px;
+  column-gap: var(--s2);
+  align-items: center;
+  padding: 3px 0;
+}
+
+.prow.is-set::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--s3));
+  top: 5px;
+  bottom: 5px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--sign);
+}
+
+.prow-label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+  cursor: default;
+}
+
+.prow-name {
+  font-size: var(--t-sm);
+}
+
+.prow.is-set .prow-name {
+  font-weight: 600;
+}
+
+.prow-key {
+  font: 400 var(--t-xs) var(--mono);
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.prow-ctl {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+.prow-ctl .field {
+  height: 24px;
+  flex: 1;
+  width: 100%;
+  font-size: var(--t-sm);
+  padding: 0 6px;
+}
+
+.prow-ctl select.field {
+  padding-right: 0;
+}
+
+.prow-slider {
+  flex: 1;
+  min-width: 0;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--sign);
+}
+
+.prow-slider.is-default {
+  opacity: 0.45;
+}
+
+.prow-slider + .prow-num {
+  flex: none;
+  width: 52px;
+}
+
+.prow-ctl input[type="checkbox"] {
+  margin: 0 auto 0 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--sign);
+}
+
+.prow-unit {
+  flex: none;
+  min-width: 26px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+.prow-reset {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  font-size: var(--t-md);
+  visibility: hidden;
+}
+
+.prow.is-set .prow-reset,
+.prow.is-invalid .prow-reset {
+  visibility: visible;
+}
+
+.prow-error,
+.prow-note {
+  grid-column: 1 / -1;
+  margin: 2px 0 2px;
+  font-size: var(--t-xs);
+  line-height: 1.4;
+}
+
+.prow-error {
+  color: var(--stop);
+}
+
+.prow-note {
+  color: var(--ink-2);
+}
+
+.prow-warn {
+  color: var(--warn);
+  margin: 0 0 var(--s1);
+}
+
+.prow-warn .btn {
+  height: 20px;
+  padding: 0 var(--s1);
+  font-size: var(--t-xs);
+  color: var(--sign);
+}
+
+.prow-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s2);
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: var(--t-xs);
+}
+
+.prow-list label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.prow-list input {
+  margin: 0;
+  accent-color: var(--sign);
+}
+
+.prow-ctl textarea.field {
+  height: auto;
+  padding: 3px 6px;
+  font: 400 var(--t-xs) var(--mono);
+  resize: vertical;
+}
+
+.params-essentials {
+  padding-bottom: var(--s2);
+}
+
+.pgroup {
+  border-top: 1px solid var(--rule);
+}
+
+.pgroup > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  padding: 6px 0;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.pgroup > summary::-webkit-details-marker {
+  display: none;
+}
+
+.pgroup > summary::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-right: 2px;
+  border-right: 1.5px solid var(--ink-3);
+  border-bottom: 1.5px solid var(--ink-3);
+  transform: translateY(-2px) rotate(-45deg);
+  transition: transform 120ms ease;
+}
+
+.pgroup[open] > summary::before {
+  transform: translateY(-3px) rotate(45deg);
+}
+
+.pgroup > summary .aside {
+  margin-left: auto;
+}
+
+.pgroup.has-set > summary .aside {
+  color: var(--sign);
+}
+
+.pgroup > summary:hover {
+  color: var(--sign);
+}
+
+.pgroup-body {
+  padding-bottom: var(--s2);
+}
+
+.params-hint {
+  margin: 0 0 var(--s2);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}

@@ -1,0 +1,258 @@
+/* Waypoints: list rows, per-location options and map pins. Uses the tokens from app.css. */
+
+.wp-actions {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.wp-act,
+.wp-reset {
+  height: 24px;
+  padding: 0 var(--s2);
+  font-size: var(--t-sm);
+}
+
+.wp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wp-item {
+  border-radius: var(--radius);
+}
+
+.wp-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: 2px 0;
+}
+
+.wp-item.is-hot > .wp-row {
+  background: var(--fog);
+}
+
+.wp-ghost {
+  opacity: 0.35;
+}
+
+.wp-dragging {
+  background: var(--panel);
+  box-shadow: var(--float-shadow);
+}
+
+/* Start green, destination red, stops ink: badge and map pin alike */
+.wp-badge,
+.wp-marker {
+  --c: var(--ink);
+}
+
+.wp-badge[data-role="start"],
+.wp-marker[data-role="start"] {
+  --c: var(--go);
+}
+
+.wp-badge[data-role="end"],
+.wp-marker[data-role="end"] {
+  --c: var(--stop);
+}
+
+/* Badge: same letter and fill as the map pin */
+.wp-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font: 700 var(--t-xs) / 1 var(--font);
+  color: var(--panel);
+  background: var(--c);
+  border: 1.5px solid var(--c);
+}
+
+.wp-badge[data-type="through"],
+.wp-badge[data-type="via"] {
+  color: var(--c);
+  background: var(--panel);
+}
+
+.wp-badge[data-type="via"] {
+  border-style: dashed;
+}
+
+.wp-badge[data-type="break_through"] {
+  box-shadow: inset 0 0 0 1.5px var(--panel);
+}
+
+.wp-badge.is-empty {
+  color: var(--c);
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.wp-item[data-id] .wp-badge {
+  cursor: grab;
+}
+
+.wp-coord {
+  flex: 1;
+  width: 0;
+  font-size: var(--t-sm);
+}
+
+.wp-opts-toggle {
+  position: relative;
+  color: var(--ink-3);
+}
+
+.wp-opts-toggle[aria-expanded="true"],
+.has-options .wp-opts-toggle {
+  color: var(--sign);
+}
+
+.wp-count {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  font: 700 9px / 1 var(--font);
+}
+
+.wp-remove {
+  color: var(--ink-3);
+}
+
+.wp-remove:disabled {
+  opacity: 0.3;
+}
+
+.wp-msg {
+  margin: 1px 0 var(--s1) calc(20px + var(--s1));
+  font-size: var(--t-xs);
+  color: var(--stop);
+}
+
+.wp-opts {
+  display: grid;
+  gap: var(--s2);
+  margin: 2px 0 var(--s2) 9px;
+  padding: var(--s2) 0 var(--s2) var(--s3);
+  border-left: 2px solid var(--rule);
+  font-size: var(--t-sm);
+}
+
+.wp-field {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.wp-label {
+  flex: none;
+  width: 52px;
+  color: var(--ink-2);
+}
+
+.wp-field .field {
+  flex: 1;
+  width: 0;
+  height: 24px;
+  font-size: var(--t-sm);
+}
+
+.wp-seg button {
+  padding: 2px 6px;
+  font-size: var(--t-xs);
+}
+
+.wp-note {
+  margin: -4px 0 0 calc(52px + var(--s2));
+  font-size: var(--t-xs);
+}
+
+.wp-opts .wp-msg {
+  margin: 0;
+}
+
+.wp-opts-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--t-xs);
+}
+
+.wp-marker {
+  cursor: grab;
+}
+
+.wp-pin {
+  position: relative;
+  width: 28px;
+  height: 37px;
+  transform-origin: 50% 100%;
+  transition: transform 120ms ease-out;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.35));
+}
+
+.wp-pin svg {
+  display: block;
+}
+
+.wp-pin-body {
+  fill: var(--c);
+  stroke: var(--panel);
+  stroke-width: 1.5;
+}
+
+.wp-pin-ring {
+  fill: none;
+}
+
+.wp-pin-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 25px;
+  padding-top: 1px;
+  display: grid;
+  place-items: center;
+  font: 700 var(--t-sm) / 1 var(--font);
+  color: var(--panel);
+  pointer-events: none;
+}
+
+.wp-marker[data-type="through"] .wp-pin-body,
+.wp-marker[data-type="via"] .wp-pin-body {
+  fill: var(--panel);
+  stroke: var(--c);
+  stroke-width: 2;
+}
+
+.wp-marker[data-type="via"] .wp-pin-body {
+  stroke-dasharray: 3 2;
+}
+
+.wp-marker[data-type="through"] .wp-pin-label,
+.wp-marker[data-type="via"] .wp-pin-label {
+  color: var(--c);
+}
+
+.wp-marker[data-type="break_through"] .wp-pin-ring {
+  stroke: var(--panel);
+  stroke-width: 1.2;
+}
+
+.wp-marker.is-hot .wp-pin {
+  transform: scale(1.18);
+}
+
+.wp-marker.is-dragging {
+  cursor: grabbing;
+}
+
+.wp-marker.is-dragging .wp-pin {
+  transform: scale(1.18) translateY(-3px);
+}

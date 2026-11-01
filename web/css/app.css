@@ -1,0 +1,366 @@
+/* Design tokens and the app shell; module styles live in css/<module>.css and only use these tokens. */
+
+/* Overpass draws the middle dot flush left; borrow just that glyph from a system font */
+@font-face {
+  font-family: "Middot";
+  src: local("Helvetica Neue"), local("Helvetica"), local("Arial"), local("DejaVu Sans"), local("Segoe UI");
+  unicode-range: U+00B7;
+}
+
+:root {
+  --ink: #1e242c;
+  --ink-2: #57606b;
+  --ink-3: #8a929c;
+  --rule: #dde1e6;
+  --panel: #ffffff;
+  --fog: #f2f4f6;
+  --sign: #0b5cad;
+  --sign-ink: #ffffff;
+  --sign-soft: #e3edf8;
+  --go: #2f8f4e;
+  --stop: #c73a32;
+  --warn: #b7791f;
+
+  /* Route palette: primary first, then alternates in order */
+  --route-0: #0b5cad;
+  --route-1: #d9822b;
+  --route-2: #7b4fc9;
+  --route-3: #1f9c8f;
+
+  --font: "Middot", "Overpass", system-ui, sans-serif;
+  --mono: "Overpass Mono", ui-monospace, monospace;
+
+  /* Type scale, 1.2 ratio from 13px: dense tool, the map gets the space */
+  --t-xs: 11px;
+  --t-sm: 12px;
+  --t-md: 13px;
+  --t-lg: 15.6px;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+
+  --radius: 4px;
+  --float-shadow: 0 1px 2px rgb(30 36 44 / 0.12), 0 4px 16px rgb(30 36 44 / 0.12);
+
+  color-scheme: light;
+}
+
+/* Components that set `display` would otherwise show hidden elements */
+[hidden] {
+  display: none !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  font: 400 var(--t-md) / 1.45 var(--font);
+  color: var(--ink);
+  background: var(--panel);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+#rail {
+  width: 360px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--rule);
+  background: var(--panel);
+  overflow-y: auto;
+  z-index: 2;
+}
+
+.rail-head {
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--rule);
+}
+
+.rail-head h1 {
+  margin: 0;
+  font-size: var(--t-lg);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.panel {
+  padding: var(--s3) var(--s4);
+  border-bottom: 1px solid var(--rule);
+}
+
+.panel:empty,
+.float:empty {
+  display: none;
+}
+
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin: 0 0 var(--s2);
+  font-size: var(--t-md);
+}
+
+.aside {
+  font-weight: 400;
+  color: var(--ink-3);
+  font-size: var(--t-sm);
+}
+
+.status {
+  margin-top: auto;
+  padding: var(--s2) var(--s4);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  border-top: 1px solid var(--rule);
+  min-height: 32px;
+}
+
+.status[data-kind="error"] {
+  color: var(--stop);
+}
+
+#map-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+.float,
+.dock,
+.menu {
+  position: absolute;
+  z-index: 3;
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--float-shadow);
+}
+
+.float-tr {
+  top: var(--s3);
+  right: var(--s3);
+}
+
+.dock {
+  inset: auto var(--s3) var(--s5);
+  max-height: calc(100% - 2 * var(--s5));
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-sm);
+}
+
+.menu {
+  z-index: 10;
+  min-width: 220px;
+  padding: var(--s1) 0;
+  border: 1px solid var(--rule);
+  font-size: var(--t-md);
+}
+
+.menu-head {
+  padding: var(--s1) var(--s3) var(--s2);
+  font: 400 var(--t-xs) var(--mono);
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--s1);
+}
+
+.menu hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: var(--s1) 0;
+}
+
+.menu button {
+  display: block;
+  width: 100%;
+  padding: 5px var(--s3);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu button:hover,
+.menu button:focus-visible {
+  background: var(--sign-soft);
+  outline: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s1);
+  height: 28px;
+  padding: 0 var(--s3);
+  font: 600 var(--t-md) var(--font);
+  color: var(--ink);
+  background: var(--fog);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover,
+.field:hover {
+  border-color: var(--ink-3);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-2);
+}
+
+.btn-ghost:hover {
+  color: var(--ink);
+  background: var(--fog);
+  border-color: transparent;
+}
+
+.btn-icon {
+  width: 28px;
+  padding: 0;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.field {
+  height: 28px;
+  padding: 0 var(--s2);
+  background: var(--fog);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.field::placeholder {
+  color: var(--ink-3);
+}
+
+.field[aria-invalid="true"] {
+  border-color: var(--stop);
+  background: color-mix(in srgb, var(--stop) 8%, var(--fog));
+}
+
+/* Segmented control: a row of radio-like buttons */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.seg button {
+  padding: 3px var(--s2);
+  font: 600 var(--t-sm) var(--font);
+  color: var(--ink-2);
+  background: var(--panel);
+  border: 0;
+  border-left: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.seg button:first-child {
+  border-left: 0;
+}
+
+.seg button[aria-pressed="true"] {
+  color: var(--sign-ink);
+  background: var(--sign);
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--sign);
+}
+
+/* MapLibre popups are hover tooltips: our colors, and the pointer passes through */
+.maplibregl-popup-content {
+  padding: var(--s2) var(--s3);
+  font: var(--t-sm) / 1.45 var(--font);
+  color: var(--ink);
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--float-shadow);
+  pointer-events: none;
+}
+
+.maplibregl-popup-tip {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  body {
+    flex-direction: column-reverse;
+  }
+
+  #rail {
+    width: 100%;
+    max-height: 45vh;
+    border-right: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .dock {
+    inset: auto var(--s2) var(--s2);
+    padding: var(--s1) var(--s2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

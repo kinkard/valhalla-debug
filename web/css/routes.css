@@ -1,0 +1,258 @@
+/* Routes panel: comparison table, selected route details, maneuver list. Tokens from app.css. */
+
+#panel-routes {
+  --rt-cols: minmax(0, 1fr) 6.4em 4.6em 4.2em;
+}
+
+#panel-routes.rt-loading .panel-title .aside {
+  color: var(--sign);
+}
+
+.rt-empty {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.rt-table {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(-1 * var(--s2));
+}
+
+.rt-head,
+.rt-row,
+.rt-legs li {
+  display: grid;
+  grid-template-columns: var(--rt-cols);
+  column-gap: var(--s2);
+}
+
+.rt-head {
+  padding: 0 var(--s2) 2px;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}
+
+.rt-head span:not(:first-child),
+.rt-legs span:not(:first-child),
+.rt-val {
+  text-align: right;
+}
+
+.rt-row {
+  align-items: baseline;
+  padding: var(--s1) var(--s2);
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  cursor: pointer;
+}
+
+.rt-row:hover,
+.rt-row.is-hover,
+.rt-man:hover,
+.rt-man:focus-visible {
+  background: var(--fog);
+}
+
+.rt-row[aria-pressed="true"] {
+  border-left-color: var(--c);
+  background: var(--sign-soft);
+}
+
+.rt-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rt-swatch {
+  flex: none;
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--c);
+}
+
+.rt-best {
+  font-weight: 700;
+}
+
+.rt-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.rt-flag {
+  padding: 0 5px;
+  font-size: var(--t-xs);
+  line-height: 16px;
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.rt-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+  margin-top: var(--s2);
+}
+
+/* Opens the profile dock, see profile.js */
+.rt-profile {
+  margin: 0 calc(-1 * var(--s2)) 0 auto;
+  padding: 0 var(--s2);
+  font-size: var(--t-sm);
+}
+
+.rt-profile[aria-pressed="true"] {
+  color: var(--sign);
+  background: var(--sign-soft);
+}
+
+.rt-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+}
+
+.rt-stepper-label {
+  color: var(--ink-2);
+  font-size: var(--t-sm);
+}
+
+.rt-stepper .btn-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.rt-stepper-value {
+  min-width: 1.2em;
+  text-align: center;
+  font-weight: 600;
+}
+
+.rt-error {
+  margin-top: var(--s2);
+  padding: var(--s2) var(--s3);
+  font-size: var(--t-sm);
+  border-left: 3px solid var(--stop);
+  background: color-mix(in srgb, var(--stop) 7%, var(--panel));
+}
+
+.rt-error p {
+  margin: 0 0 var(--s1);
+}
+
+.rt-error p:last-child {
+  margin-bottom: 0;
+}
+
+.rt-error-message {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.rt-detail {
+  margin-top: var(--s3);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
+}
+
+.rt-detail-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--s2);
+  font-size: var(--t-md);
+}
+
+.rt-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px var(--s3);
+  margin: 0;
+}
+
+.rt-dl dt {
+  color: var(--ink-2);
+}
+
+.rt-dl dd {
+  margin: 0;
+}
+
+.rt-warnings {
+  margin: var(--s2) 0 0;
+  padding-left: var(--s4);
+  font-size: var(--t-sm);
+  color: var(--warn);
+}
+
+.rt-legs {
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-sm);
+}
+
+.rt-maneuvers {
+  margin-top: var(--s2);
+}
+
+.rt-maneuvers summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 2px 0;
+}
+
+.rt-leg-head {
+  margin: var(--s2) 0 0;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.rt-man-list {
+  margin: var(--s1) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: man;
+}
+
+.rt-man {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 3px var(--s1) 3px 28px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  counter-increment: man;
+}
+
+.rt-man::before {
+  content: counter(man);
+  position: absolute;
+  left: var(--s1);
+  top: 3px;
+  width: 18px;
+  text-align: right;
+  font-size: var(--t-xs);
+  line-height: 19px;
+  color: var(--ink-3);
+}
+
+.rt-man-meta {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+}

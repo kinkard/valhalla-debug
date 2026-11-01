@@ -1,14 +1,13 @@
 # About
 
-Valhalla Debug is a tool for debugging Valhalla routes and investigating routing/data issues.
-The tool is straightforward and not particularly user-friendly, but it does allow you to:
+Valhalla Debug is a tool for debugging Valhalla routes and investigating routing/data issues:
+why did the router pick this road, and why not that one?
 
-- **Build a route and experiment with different parameters:** Left-click on the map to add a waypoint, or manually enter waypoints in the box at the top left, then press “Do route.” You can drag pins to adjust them, but the only way to remove a waypoint is to edit the box directly. To reset everything, clear the box and press “Do route” again.
-- **Visualize route expansion:** After pressing “Do expansion,” you can use the slider to view the expansion process and identify problem spots in the road graph.
-Investigate road graph edges: Right-click on the map to bring up popups with information on the road graph edges that Valhalla is using. Multiple popups can be opened at once.
-- **View current traffic data:** Click the “Show traffic” button to see the current traffic that Valhalla uses. For performance reasons, traffic data is limited in amount; zooming out too far will reduce traffic details and may eventually hide traffic entirely. Keep in mind there are multiple levels of edges (highways, arterials, and local roads), so zooming in further before pressing “Show traffic” will display more details.
-
-![image](https://github.com/user-attachments/assets/c0040c58-3a1b-4da7-930b-0a90e951d476)
+- **Build a route and experiment with options.** Right-click the map to set a start, a destination
+  or a stop; drag markers or reorder the waypoint list. The route re-runs as you change waypoints or
+  options. Options form fields are empty by default and show Valhalla's default as a placeholder,
+  so only the options you change are sent and put into the URL.
+- **Compare alternates.** Time, distance and cost of each route side by side, the best of each in bold.
 
 ```
 $ ./valhalla-debug --help
@@ -21,10 +20,8 @@ Options:
           Max threads to use [default: 4]
       --valhalla-url <VALHALLA_URL>
           Valhalla base url to send requests to [default: http://localhost:8002]
-      --valhalla-tiles <VALHALLA_TILES>
-          Path to Valhalla tileset tarball
-      --valhalla-traffic <VALHALLA_TRAFFIC>
-          Path to valhalla traffic tarball
+      --web-dir <WEB_DIR>
+          Directory with static web files [default: web]
   -h, --help
           Print help
 ```
@@ -34,6 +31,18 @@ Options:
 ```sh
 cargo run --release
 ```
+
+## URL format
+
+Everything you see is in the URL hash, so a link reproduces it. Parameters are `&`-separated:
+
+| Parameter | Example | Meaning |
+|---|---|---|
+| `map` | `11/55.668/13.158` | zoom/lat/lon of the map view |
+| `wp` | `55.605,13.0038;55.7047,13.191!type=through` | waypoints as `lat,lon`, `;`-separated, per-location options as `!key=value` |
+| `costing` | `truck` | costing model, `auto` when absent |
+| `alt` | `1` | selected route, 0 is the primary |
+| anything else | `alternates=0`, `date_time.type=1`, `co.use_highways=0.2` | request options by dot path; `co.` is `costing_options.<costing>.`. Only options that differ from the defaults appear: Valhalla's, except `alternates`, which defaults to 2 here |
 
 ## License
 

@@ -1,0 +1,145 @@
+/* Route profile dock: speed and elevation charts along the routes, at the bottom of the map. */
+
+#panel-profile {
+  overflow-y: auto;
+}
+
+.pf-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-bottom: var(--s1);
+}
+
+.pf-head .panel-title {
+  flex: 1;
+  justify-content: flex-start;
+  margin: 0;
+}
+
+.pf-head .btn-icon {
+  width: 24px;
+  height: 24px;
+  font-size: var(--t-lg);
+  font-weight: 400;
+}
+
+.pf-body {
+  position: relative;
+}
+
+.pf-row + .pf-row {
+  margin-top: var(--s2);
+}
+
+.pf-caption {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.pf-plot {
+  position: relative;
+}
+
+.pf-chart {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  cursor: crosshair;
+  border-radius: var(--radius);
+}
+
+.pf-grid,
+.pf-axis {
+  stroke: var(--rule);
+  shape-rendering: crispEdges;
+}
+
+.pf-axis {
+  stroke: var(--ink-3);
+}
+
+.pf-via {
+  stroke: var(--ink-3);
+  stroke-dasharray: 1 3;
+}
+
+.pf-tick {
+  fill: var(--ink-3);
+  font-size: var(--t-xs);
+}
+
+.pf-line {
+  fill: none;
+  stroke: var(--c);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  opacity: 0.75;
+}
+
+.pf-line.pf-sel {
+  stroke-width: 2.5;
+  opacity: 1;
+}
+
+.pf-cross {
+  stroke: var(--ink-2);
+  shape-rendering: crispEdges;
+  pointer-events: none;
+}
+
+.pf-note {
+  margin: 0;
+  padding: var(--s3) 0 var(--s3) 34px;
+  color: var(--ink-2);
+}
+
+.pf-plot .pf-note:not([hidden]) {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.pf-plot:has(.pf-note:not([hidden])) .pf-chart:empty {
+  height: 64px;
+}
+
+.pf-key {
+  flex: none;
+  align-self: center;
+  width: 14px;
+  height: 0;
+  border-top: 2px solid var(--c, var(--ink-2));
+  border-radius: 1px;
+}
+
+.pf-tip {
+  position: absolute;
+  z-index: 1;
+  min-width: 160px;
+  padding: var(--s1) var(--s2);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--float-shadow);
+  pointer-events: none;
+}
+
+.pf-tip-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.pf-tip-row strong {
+  min-width: 4.6em;
+}
+
+@media (max-width: 720px) {
+  #panel-profile {
+    max-height: 62%;
+  }
+}

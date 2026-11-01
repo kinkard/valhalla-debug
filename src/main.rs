@@ -1,18 +1,21 @@
-use std::{collections::HashMap, num::NonZero, sync::Arc, time::Instant};
+use std::{num::NonZero, sync::Arc};
 
 use axum::{
-    Json, Router,
-    extract::{Path, Query, State},
-    http::StatusCode,
-    response::Html,
+    Router,
+    http::{HeaderValue, header},
     routing::{get, post},
 };
 use clap::Parser;
-use serde::Deserialize;
-use serde_json::Value;
-use tokio::{fs::File, io::AsyncReadExt, signal};
+use tokio::signal;
+use tower_http::{
+    compression::CompressionLayer, services::ServeDir, set_header::SetResponseHeader,
+};
 use tracing::info;
-use valhalla::{DirectedEdge, GraphReader, GraphTile, LatLon, level};
+
+mod params;
+mod request;
+mod route;
+mod valhalla;
 
 #[derive(Parser)]
 struct Config {
@@ -25,19 +28,16 @@ struct Config {
     /// Valhalla base url to send requests to
     #[arg(long, default_value = "http://localhost:8002")]
     valhalla_url: String,
-    /// Path to Valhalla tileset tarball.
-    #[arg(long)]
-    valhalla_tiles: Option<String>,
-    /// Path to valhalla traffic tarball.
-    #[arg(long)]
-    valhalla_traffic: Option<String>,
+    /// Directory with static web files
+    #[arg(long, default_value = "web")]
+    web_dir: String,
 }
 
 #[derive(Clone)]
 struct AppState {
     http_client: reqwest::Client,
+    /// `--valhalla-url` without a trailing slash.
     valhalla_url: Arc<str>,
-    graph_reader: Option<GraphReader>,
 }
 
 fn main() {
@@ -59,33 +59,22 @@ fn main() {
 }
 
 async fn run(config: Config) {
-    let graph_reader = config
-        .valhalla_tiles
-        .map(|path| {
-            valhalla::ConfigBuilder {
-                mjolnir: valhalla::config::Mjolnir {
-                    tile_extract: path,
-                    traffic_extract: config.valhalla_traffic.unwrap_or_default(),
-                    ..Default::default()
-                },
-                ..Default::default()
-            }
-            .build()
-        })
-        .and_then(|cfg| GraphReader::new(&cfg).ok());
-    if graph_reader.is_some() {
-        info!("Loaded Valhalla tiles. Traffic functionality is awailable!")
-    }
-
     // build our application with a route
     let app = Router::new()
-        .route("/", get(serve_index_html))
-        .route("/api/request", post(forward_request))
-        .route("/api/traffic/{bbox}", get(traffic))
+        .route("/ui/route", post(route::route_panel))
+        .route("/ui/params", get(params::panel))
+        .route("/ui/params/form", get(params::form))
+        // Revalidate static files on every load (cheap 304s via ETag): browsers, Safari especially,
+        // otherwise reuse stale ES modules next to fresh ones and the page breaks after an update
+        .fallback_service(SetResponseHeader::if_not_present(
+            ServeDir::new(&config.web_dir),
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("no-cache"),
+        ))
+        .layer(CompressionLayer::new())
         .with_state(AppState {
             http_client: reqwest::Client::new(),
-            valhalla_url: config.valhalla_url.into(),
-            graph_reader,
+            valhalla_url: config.valhalla_url.trim_end_matches('/').into(),
         });
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", config.port))
@@ -110,195 +99,4 @@ async fn run(config: Config) {
         })
         .await
         .unwrap();
-}
-
-async fn serve_index_html() -> Result<Html<String>, (StatusCode, String)> {
-    let index_html = "web/index.html";
-    let Ok(mut file) = File::open(index_html).await else {
-        return Err((
-            StatusCode::NOT_FOUND,
-            format!("Failed to open {index_html}: not found"),
-        ));
-    };
-
-    let mut contents = String::new();
-    if let Err(err) = file.read_to_string(&mut contents).await {
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to read {index_html}: {err}"),
-        ));
-    }
-
-    Ok(Html(contents))
-}
-
-#[derive(Deserialize)]
-struct RequestToForward {
-    /// Valhalla API endpoint. See https://valhalla.github.io/valhalla/api for more details.
-    endpoint: String,
-    /// Data to send
-    payload: Value,
-}
-
-async fn forward_request(
-    State(state): State<AppState>,
-    Json(request): Json<RequestToForward>,
-) -> Result<Json<Value>, (StatusCode, String)> {
-    let url = format!("{}/{}", state.valhalla_url, request.endpoint);
-    let begin = Instant::now();
-    let response = state
-        .http_client
-        .post(&url)
-        .json(&request.payload)
-        .send()
-        .await;
-    info!(
-        "Fetched data from {url} in {}ms",
-        begin.elapsed().as_millis()
-    );
-
-    response
-        .map_err(|err| (StatusCode::BAD_REQUEST, err.to_string()))?
-        .json()
-        .await
-        .map(Json)
-        .map_err(|err| (StatusCode::BAD_REQUEST, err.to_string()))
-}
-
-#[derive(Default, Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum SpeedSource {
-    #[default]
-    Live,
-    Day,
-    Night,
-}
-
-#[derive(Default, Deserialize)]
-struct TrafficQuery {
-    source: SpeedSource,
-}
-
-async fn traffic(
-    State(state): State<AppState>,
-    Path(bbox): Path<String>,
-    Query(query): Query<TrafficQuery>,
-) -> Result<Json<Value>, (StatusCode, String)> {
-    let Some(bbox) = parse_bbox(&bbox) else {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "Bad bbox, expecting 'min_lat,min_lon;max_lat,max_lon'".to_string(),
-        ));
-    };
-    info!("Reading traffic for {bbox:?}");
-
-    let Some(reader) = &state.graph_reader else {
-        return Err((
-            StatusCode::IM_A_TEAPOT,
-            "Traffic information was not enabled".to_string(),
-        ));
-    };
-
-    let begin = Instant::now();
-    let edges = [level::HIGHWAY, level::ARTERIAL, level::LOCAL]
-        .into_iter()
-        .map(|level| reader.tiles_in_bbox(bbox.0, bbox.1, level))
-        // Limit number of traffic tiles we fetch
-        .scan(0, |count, tiles| {
-            *count += tiles.len();
-            if *count < 20 { Some(tiles) } else { None }
-        })
-        .flatten()
-        .flat_map(|tile_id| reader.graph_tile(tile_id))
-        // todo: this is really heavy compute operation
-        .flat_map(|tile| {
-            tile.directededges()
-                .iter()
-                .filter_map(|edge| {
-                    match query.source {
-                        SpeedSource::Live => tile.live_traffic(edge).speed().map(u32::from),
-                        SpeedSource::Day => {
-                            let s = edge.constrained_flow_speed();
-                            if s == 0 { None } else { Some(s) }
-                        }
-                        SpeedSource::Night => {
-                            let s = edge.free_flow_speed();
-                            if s == 0 { None } else { Some(s) }
-                        }
-                    }
-                    .map(|speed| (edge_shape(&tile, edge), speed as f32 / edge.speed() as f32))
-                })
-                .collect::<Vec<_>>()
-        })
-        .map(|(shape, normalized_speed)| {
-            (
-                shape,
-                // Convert normalized speed [0.0, 1.0] to a jam factor [10.0, 0.0]
-                10 - (normalized_speed * 10.0).round() as i32,
-            )
-        })
-        .collect::<HashMap<_, _>>();
-    info!(
-        "Fetched {} traffic edges in {}ms",
-        edges.len(),
-        begin.elapsed().as_millis()
-    );
-    Ok(Json(serde_json::to_value(edges).unwrap()))
-}
-
-/// Polyline6-encoded edge shape, in the direction of travel.
-fn edge_shape(tile: &GraphTile, edge: &DirectedEdge) -> String {
-    let shape = tile.edgeinfo(edge).shape().map(<(f64, f64)>::from);
-    if edge.forward() {
-        polyline_iter::encode(6, shape)
-    } else {
-        let points: Vec<_> = shape.collect();
-        polyline_iter::encode(6, points.into_iter().rev())
-    }
-}
-
-fn parse_coordinate(coord: &str) -> Option<LatLon> {
-    let (lat, lon) = coord.split_once(',')?;
-    let lat = lat.parse::<f64>().ok()?;
-    let lon = lon.parse::<f64>().ok()?;
-    Some(LatLon(lat, lon))
-}
-
-fn parse_bbox(bbox: &str) -> Option<(LatLon, LatLon)> {
-    let (min, max) = bbox.split_once(';')?;
-    let min = parse_coordinate(min)?;
-    let max = parse_coordinate(max)?;
-    Some((min, max))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_bbox() {
-        assert_eq!(
-            parse_bbox("55.0,13.0;56.0,14.0"),
-            Some((LatLon(55.0, 13.0), LatLon(56.0, 14.0)))
-        );
-        assert_eq!(
-            parse_bbox("37.7749,-122.4194;34.0522,-118.2437"),
-            Some((LatLon(37.7749, -122.4194), LatLon(34.0522, -118.2437)))
-        );
-
-        // missing semicolon
-        assert_eq!(parse_bbox("37.7749,-122.4194 34.0522,-118.2437"), None);
-        // missing comma
-        assert_eq!(parse_bbox("37.7749 -122.4194;34.0522,-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749;-122.4194;34.0522,-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749-122.4194;34.0522,-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749,-122.4194;34.0522 -118.2437"), None);
-        assert_eq!(parse_bbox("37.7749,-122.4194;34.0522;-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749,-122.4194;34.0522-118.2437"), None);
-        // not a number
-        assert_eq!(parse_bbox("invalid;34.0522,-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749,invalid;34.0522,-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749,-122.4194;invalid,-118.2437"), None);
-        assert_eq!(parse_bbox("37.7749,-122.4194;34.0522,invalid"), None);
-    }
 }

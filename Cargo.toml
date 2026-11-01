@@ -14,11 +14,17 @@ lto = "thin"
 [dependencies]
 axum = "0.8"
 clap = { version = "4", features = ["derive", "env"] }
+maud = { version = "0.27", features = ["axum"] }
 polyline-iter = "0.4"
+prost = "0.14"
 reqwest = { version = "0.13", default-features = false, features = ["json"] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
 tokio = { version = "1", features = ["rt-multi-thread", "fs", "io-util", "signal"] }
+tower-http = { version = "0.7", features = ["fs", "compression-gzip", "compression-zstd", "set-header"] }
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
-valhalla = { version = "0.7", default-features = false }
+valhalla = "0.7"
+
+[dev-dependencies]
+serde-saphyr = { version = "2", default-features = false, features = ["deserialize"] }
