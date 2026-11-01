@@ -6,6 +6,7 @@ import * as waypoints from "./waypoints.js";
 import * as params from "./params.js";
 import * as routes from "./routes.js";
 import * as speeds from "./speeds.js";
+import * as locate from "./locate.js";
 import * as profile from "./profile.js";
 
 const DEFAULT_VIEW = { zoom: 11, lat: 55.668221, lon: 13.15792 };
@@ -72,7 +73,7 @@ menu.add({
   run: ({ lngLat }) => app.copy(`${fixed(lngLat.lat)},${fixed(lngLat.lng)}`, "lat, lon"),
 });
 
-const modules = { waypoints, speeds, params, profile, routes };
+const modules = { waypoints, speeds, locate, params, profile, routes };
 
 map.on("load", () => {
   for (const name of SLOTS) {

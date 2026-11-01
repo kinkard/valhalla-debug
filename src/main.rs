@@ -15,6 +15,7 @@ use tower_http::{
 use tracing::info;
 
 mod grid;
+mod locate;
 mod mvt;
 mod params;
 mod request;
@@ -95,6 +96,7 @@ async fn run(config: Config) {
         .route("/ui/route", post(route::route_panel))
         .route("/ui/params", get(params::panel))
         .route("/ui/params/form", get(params::form))
+        .route("/ui/locate", get(locate::locate))
         .route("/tiles/speeds/{z}/{x}/{y}", get(speeds::tile))
         // Revalidate static files on every load (cheap 304s via ETag): browsers, Safari especially,
         // otherwise reuse stale ES modules next to fresh ones and the page breaks after an update

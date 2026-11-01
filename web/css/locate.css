@@ -1,0 +1,454 @@
+/* Locate: drawer on the left edge of the map, one card per located point. */
+
+.loc-drawer {
+  top: var(--s3);
+  left: var(--s3);
+  width: min(400px, calc(100% - 2 * var(--s3)));
+  /* clear the scale control and, when open, the expansion dock */
+  max-height: calc(100% - var(--s3) - 40px - var(--loc-dock, 0px));
+  display: flex;
+  flex-direction: column;
+}
+
+.loc-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s1) var(--s1) var(--s2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.loc-drawer-head .aside {
+  flex: 1;
+}
+
+.loc-drawer button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.loc-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.loc-card {
+  padding: var(--s2) var(--s3) var(--s3);
+  border-top: 1px solid var(--rule);
+}
+
+.loc-card:first-child {
+  border-top: 0;
+}
+
+.loc-card:hover {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+
+.loc-card.is-flash {
+  animation: loc-flash 900ms ease-out;
+}
+
+@keyframes loc-flash {
+  from {
+    background: var(--sign-soft);
+  }
+}
+
+.loc-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.loc-where {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.loc-where .mono {
+  font-size: var(--t-sm);
+}
+
+.loc-where .muted {
+  font-size: var(--t-xs);
+}
+
+.loc-num,
+.loc-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  font: 700 var(--t-xs) / 1 var(--font);
+  color: var(--panel);
+  background: var(--ink);
+}
+
+.loc-marker {
+  border: 2px solid var(--panel);
+  box-shadow: var(--float-shadow);
+  cursor: pointer;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+}
+
+.loc-marker.is-hover {
+  color: var(--ink);
+  background: var(--warn);
+}
+
+.loc-note {
+  margin: var(--s2) 0 0;
+  padding: var(--s1) var(--s2);
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  background: var(--fog);
+  border-radius: var(--radius);
+}
+
+.loc-error {
+  margin-top: var(--s2);
+  font-size: var(--t-sm);
+}
+
+.loc-error p {
+  margin: 0 0 var(--s2);
+}
+
+.loc-error strong {
+  color: var(--stop);
+}
+
+.loc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin-top: var(--s2);
+}
+
+.loc-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 170px;
+  height: 24px;
+  padding: 0 var(--s2) 0 var(--s1);
+  font: 600 var(--t-sm) var(--font);
+  color: var(--ink-2);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.loc-tab:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+
+.loc-tab[aria-selected="true"] {
+  color: var(--ink);
+  background: var(--sign-soft);
+  border-color: var(--sign);
+}
+
+.loc-tab.is-filtered {
+  border-style: dashed;
+  color: var(--ink-3);
+}
+
+.loc-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loc-dir {
+  width: 14px;
+  flex: none;
+  text-align: center;
+  color: var(--sign);
+  font-weight: 700;
+}
+
+.loc-panel {
+  padding-top: var(--s2);
+}
+
+.loc-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s2);
+}
+
+.loc-title .muted {
+  font-size: var(--t-sm);
+}
+
+.loc-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s3);
+  margin: 2px 0 var(--s2);
+  font-size: var(--t-sm);
+}
+
+.loc-links a,
+.btn-link {
+  color: var(--sign);
+  text-decoration: none;
+}
+
+.loc-links a:hover,
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.btn-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.loc-facts {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 5px var(--s2);
+  margin: 0;
+  font-size: var(--t-sm);
+}
+
+.loc-facts dt {
+  color: var(--ink-3);
+}
+
+.loc-facts dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.loc-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s3);
+}
+
+.loc-stat {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.loc-stat span:first-child {
+  font-size: var(--t-xs);
+}
+
+.loc-stat span:last-child {
+  font-weight: 600;
+}
+
+.loc-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  vertical-align: top;
+}
+
+.loc-facts dd > .muted + .loc-badges {
+  display: flex;
+  margin-top: 3px;
+}
+
+.badge {
+  padding: 0 5px;
+  font-size: var(--t-xs);
+  line-height: 17px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.badge.is-yes {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--go) 18%, var(--panel));
+}
+
+.badge.is-no {
+  color: var(--ink-3);
+  background: var(--fog);
+  text-decoration: line-through;
+}
+
+.badge.is-mode {
+  box-shadow: inset 0 0 0 1.5px var(--sign);
+  font-weight: 700;
+}
+
+.badge.is-no.is-mode {
+  color: var(--stop);
+  box-shadow: inset 0 0 0 1.5px var(--stop);
+}
+
+.badge.is-flag {
+  color: var(--ink-2);
+  background: var(--fog);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+.loc-predicted {
+  margin-top: var(--s3);
+}
+
+.loc-none {
+  margin: var(--s2) 0 0;
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+}
+
+.loc-predicted-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s2);
+  font-size: var(--t-sm);
+}
+
+.loc-lowest {
+  font-weight: 600;
+  color: var(--stop);
+}
+
+.loc-readout {
+  display: block;
+  min-height: 1.45em;
+  margin: 2px 0;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+
+.loc-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin: var(--s1) 0;
+}
+
+.loc-days button {
+  padding: 2px 0;
+}
+
+.loc-days button.is-min:not([aria-pressed="true"]) {
+  color: var(--stop);
+}
+
+.loc-week {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: pan-y;
+  border-radius: 2px;
+}
+
+.loc-week:focus-visible {
+  box-shadow: none;
+  outline: 2px solid var(--sign);
+  outline-offset: 2px;
+}
+
+.loc-week text {
+  font: 400 9px var(--font);
+  fill: var(--ink-3);
+}
+
+.loc-week text.speed {
+  fill: var(--ink-2);
+}
+
+.loc-week .day:not(.is-shown) {
+  display: none;
+}
+
+.loc-week .grid {
+  stroke: var(--rule);
+}
+
+.loc-week .area {
+  fill: var(--sign-soft);
+  opacity: 0.7;
+}
+
+.loc-week .line {
+  fill: none;
+  stroke: var(--sign);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.loc-week .min-mark {
+  fill: var(--stop);
+  stroke: var(--panel);
+  stroke-width: 1.5;
+}
+
+.loc-week .cursor {
+  fill: var(--ink);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.loc-week .cursor-dot {
+  fill: var(--ink);
+  stroke: var(--panel);
+  pointer-events: none;
+}
+
+.loc-week .cursor.is-pinned,
+.loc-week .cursor-dot.is-pinned {
+  fill: var(--stop);
+}
+
+.loc-raw {
+  margin-top: var(--s3);
+  font-size: var(--t-sm);
+}
+
+.loc-raw summary {
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.loc-raw pre {
+  max-height: 320px;
+  margin: var(--s1) 0 0;
+  padding: var(--s2);
+  overflow: auto;
+  font-size: var(--t-xs);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--fog);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 720px) {
+  .loc-drawer {
+    inset: auto var(--s2) calc(32px + var(--loc-dock, 0px));
+    width: auto;
+    max-height: 60%;
+  }
+}

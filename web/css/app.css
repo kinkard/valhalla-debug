@@ -148,6 +148,7 @@ body {
 
 .float,
 .dock,
+.loc-drawer,
 .menu {
   position: absolute;
   z-index: 3;

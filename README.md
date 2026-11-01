@@ -8,9 +8,11 @@ why did the router pick this road, and why not that one?
   options. Options form fields are empty by default and show Valhalla's default as a placeholder,
   so only the options you change are sent and put into the URL.
 - **Compare alternates.** Time, distance and cost of each route side by side, the best of each in bold.
+- **Locate.** Right-click → "Locate here" shows the edges Valhalla's `/locate` snaps to,
+  with decoded access, speeds and the full week of predicted speeds.
 - **See speeds.** "Road speeds" at the top right of the map (needs `--valhalla-tiles`): live traffic
   (with `--valhalla-traffic`), predicted speeds at any 5-minute slot of the week, or typical day and
-  night speeds. Hover an edge for all its speeds. Served as vector tiles from
+  night speeds. Hover an edge for all its speeds, click it for its week. Served as vector tiles from
   the tileset.
 
 ```
@@ -41,7 +43,7 @@ cargo run --release -- --valhalla-tiles /path/to/tiles.tar
 ```
 
 Point `--valhalla-url` at a Valhalla service that uses the same tileset. Without `--valhalla-tiles`
-routing and alternates still work, but speed tiles don't.
+routing, alternates and locate still work, but speed tiles don't.
 
 ## URL format
 
