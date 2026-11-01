@@ -27,6 +27,7 @@ tower-http = { version = "0.7", features = ["fs", "compression-gzip", "compressi
 tracing = { version = "0.1", default-features = false }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
 valhalla = "0.7"
+zlib-rs = "0.6"
 
 [dev-dependencies]
 serde-saphyr = { version = "2", default-features = false, features = ["deserialize"] }

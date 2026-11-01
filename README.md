@@ -14,6 +14,10 @@ why did the router pick this road, and why not that one?
   (with `--valhalla-traffic`), predicted speeds at any 5-minute slot of the week, or typical day and
   night speeds. Hover an edge for all its speeds, click it for its week. Served as vector tiles from
   the tileset.
+- **Debug the search.** "Run expansion" under the routes colors every edge Valhalla's search
+  explored, by search tree and search order: a road left uncolored next to colored ones shows where
+  a restriction or a mapping error kept the search out. Right-click it → "Locate here" to see why.
+  A slider replays the search up to any event.
 
 ```
 $ ./valhalla-debug --help
@@ -23,7 +27,7 @@ Options:
       --port <PORT>
           Port to listen [default: 3000]
       --concurrency <CONCURRENCY>
-          Max threads to use [default: 4]
+          Max threads to use, also per expansion archive [default: 4]
       --valhalla-url <VALHALLA_URL>
           Valhalla base url to send requests to [default: http://localhost:8002]
       --valhalla-tiles <VALHALLA_TILES>
@@ -43,7 +47,7 @@ cargo run --release -- --valhalla-tiles /path/to/tiles.tar
 ```
 
 Point `--valhalla-url` at a Valhalla service that uses the same tileset. Without `--valhalla-tiles`
-routing, alternates and locate still work, but speed tiles don't.
+routing, alternates, locate and expansion still work, but speed tiles don't.
 
 ## URL format
 

@@ -27,6 +27,15 @@
   --route-2: #7b4fc9;
   --route-3: #1f9c8f;
 
+  /* Expansion: forward and reverse search trees */
+  --exp-fwd: var(--route-3);
+  --exp-rev: #c2378c;
+  /* Expansion edges near the tree root are deep, far ones light */
+  --exp-fwd-near: #1f726c;
+  --exp-fwd-far: #79c4bc;
+  --exp-rev-near: #89306a;
+  --exp-rev-far: #da87ba;
+
   --font: "Middot", "Overpass", system-ui, sans-serif;
   --mono: "Overpass Mono", ui-monospace, monospace;
 

@@ -1759,6 +1759,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "valhalla",
+ "zlib-rs",
 ]
 
 [[package]]

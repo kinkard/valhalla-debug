@@ -1,0 +1,106 @@
+/* Expansion dock: timeline over a histogram of the search, at the bottom of the map. */
+
+#panel-expansion {
+  display: flex;
+  flex-direction: column;
+}
+
+.exp-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 28px;
+}
+
+.exp-title {
+  margin: 0;
+  font-size: var(--t-md);
+}
+
+.exp-meta {
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.exp-error {
+  color: var(--stop);
+}
+
+.exp-sep {
+  margin: 0 5px;
+  color: var(--ink-3);
+}
+
+.exp-spacer {
+  flex: 1;
+}
+
+.exp-loading {
+  height: 3px;
+  margin: var(--s2) 0 var(--s1);
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, transparent, var(--exp-fwd), var(--exp-rev), transparent) 0 0 / 40% 100% no-repeat,
+    var(--fog);
+  animation: exp-sweep 1.1s linear infinite;
+}
+
+@keyframes exp-sweep {
+  from {
+    background-position: -40% 0;
+  }
+  to {
+    background-position: 140% 0;
+  }
+}
+
+.exp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  color: var(--ink-2);
+  margin-left: var(--s1);
+}
+
+.exp-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.exp-key i {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--c);
+}
+
+@media (max-width: 720px) {
+  .exp-meta,
+  .exp-legend {
+    display: none;
+  }
+}
+
+/* Replay: the edges explored up to a search event */
+.exp-replay {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: var(--s1);
+}
+
+.exp-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--exp-fwd);
+}
+
+.exp-readout {
+  color: var(--ink-2);
+  white-space: nowrap;
+}

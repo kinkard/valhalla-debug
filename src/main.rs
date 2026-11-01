@@ -10,10 +10,16 @@ use axum::{
 use clap::Parser;
 use tokio::signal;
 use tower_http::{
-    compression::CompressionLayer, services::ServeDir, set_header::SetResponseHeader,
+    compression::{
+        CompressionLayer,
+        predicate::{DefaultPredicate, NotForContentType, Predicate},
+    },
+    services::ServeDir,
+    set_header::SetResponseHeader,
 };
 use tracing::info;
 
+mod expansion;
 mod grid;
 mod locate;
 mod mvt;
@@ -28,7 +34,7 @@ struct Config {
     /// Port to listen
     #[arg(long, default_value_t = 3000)]
     port: u16,
-    /// Max threads to use
+    /// Max threads to use, also per expansion archive
     #[arg(long, default_value_t = 4)]
     concurrency: u16,
     /// Valhalla base url to send requests to
@@ -51,6 +57,8 @@ struct AppState {
     /// `--valhalla-url` without a trailing slash.
     valhalla_url: Arc<str>,
     graph_reader: Option<GraphReader>,
+    /// Tokio worker threads: `--concurrency`, at most the cores.
+    threads: usize,
 }
 
 fn main() {
@@ -97,6 +105,7 @@ async fn run(config: Config) {
         .route("/ui/params", get(params::panel))
         .route("/ui/params/form", get(params::form))
         .route("/ui/locate", get(locate::locate))
+        .route("/api/expansion", post(expansion::run))
         .route("/tiles/speeds/{z}/{x}/{y}", get(speeds::tile))
         // Revalidate static files on every load (cheap 304s via ETag): browsers, Safari especially,
         // otherwise reuse stale ES modules next to fresh ones and the page breaks after an update
@@ -105,11 +114,15 @@ async fn run(config: Config) {
             header::CACHE_CONTROL,
             HeaderValue::from_static("no-cache"),
         ))
-        .layer(CompressionLayer::new())
+        // PMTiles archives carry their own compression
+        .layer(CompressionLayer::new().compress_when(
+            DefaultPredicate::new().and(NotForContentType::const_new("application/vnd.pmtiles")),
+        ))
         .with_state(AppState {
             http_client: reqwest::Client::new(),
             valhalla_url: config.valhalla_url.trim_end_matches('/').into(),
             graph_reader,
+            threads: tokio::runtime::Handle::current().metrics().num_workers(),
         });
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", config.port))
