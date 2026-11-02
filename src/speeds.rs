@@ -1,5 +1,5 @@
 //! `GET /tiles/speeds/{z}/{x}/{y}?t=`: drivable edges with km/h `sp`, `lim`, `ff`, `cf`, `live`, and `p`
-//! at `t` seconds into the local week.
+//! at `t` seconds into the local week, and `ow` on one-way edges.
 
 use std::{
     collections::VecDeque,
@@ -229,6 +229,10 @@ fn edge_shape(tile: &GraphTile, de: &DirectedEdge, out: &mut Vec<[f64; 2]>) {
 fn edge_props<'a>(tile: &GraphTile, de: &DirectedEdge, t: Option<u32>) -> Vec<(&'a str, u64)> {
     let u = |v: u32| v as u64;
     let mut props = vec![("sp", u(de.speed()))];
+    // No drawn edge back, so the page doesn't offset it to make room for one
+    if !de.reverseaccess().intersects(ACCESS) {
+        props.push(("ow", 1));
+    }
     // Valhalla stores 0 for an unknown limit and 255 for "unlimited"; neither makes a ratio
     let limit = tile.edgeinfo(de).speed_limit;
     if (1..255).contains(&limit) {

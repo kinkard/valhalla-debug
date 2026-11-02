@@ -126,8 +126,8 @@ function addLayers() {
   const zooms = [7, 11, 14, 17, 20];
   const byZoom = (v) => ["interpolate", ["exponential", 1.6], ["zoom"], ...zooms.flatMap((z, i) => [z, v[i]])];
   const widths = [0.8, 1.6, 3, 7, 14];
-  // Offset to the right of travel, so the two directions of a road sit side by side
-  const offset = byZoom([0.4, 1, 2, 4.5, 9]);
+  // Offset to the right of travel, so the two directions of a road sit side by side; one-ways stay centered
+  const offset = byZoom([0.4, 1, 2, 4.5, 9].map((o) => ["case", ["has", "ow"], 0, o]));
   const common = { type: "line", source: SOURCE, "source-layer": "speeds", layout: { visibility: "none" } };
   const add = (layer) => map().addLayer({ ...common, ...layer }, app.slot("speeds"));
   add({
