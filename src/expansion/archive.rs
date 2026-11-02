@@ -1,5 +1,5 @@
 //! The tile pyramid of an expansion in one PMTiles v3 archive, stats in its metadata. pmtiles.io and
-//! QGIS draw nothing at the levels it skips, see [`tile::LEVELS`].
+//! QGIS draw nothing at the levels it skips, see [`LEVELS`].
 
 use std::{
     io::Cursor,
@@ -11,19 +11,17 @@ use pmtiles::{Compression, PmTilesWriter, TileId, TileType};
 use serde_json::json;
 use zlib_rs::{Deflate, DeflateConfig, DeflateFlush, Status, compress_bound};
 
-use super::{Expansion, MAX_ZOOM, tile};
+use super::{Expansion, LEVELS, MAX_ZOOM, tile};
 use crate::mvt::{self, TileCoord};
 
 pub const CONTENT_TYPE: &str = "application/vnd.pmtiles";
-/// A third faster than the default 6 for 1.6 % bigger tiles on NY -> SF.
+/// Faster than the default 6 for slightly bigger tiles.
 const GZIP_LEVEL: i32 = 3;
 
-/// Gzipped tiles with features at [`tile::LEVELS`] in tile id order, rendered on `threads`. Lowest
+/// Gzipped tiles with features at [`LEVELS`] in tile id order, rendered on `threads`. Lowest
 /// levels first: their few tiles are the slowest.
 pub fn pyramid(exp: &Expansion, threads: usize) -> Vec<(TileCoord, Vec<u8>)> {
-    let candidates: Vec<TileCoord> = (tile::LEVELS.into_iter())
-        .flat_map(|z| reached(exp, z))
-        .collect();
+    let candidates: Vec<TileCoord> = (LEVELS.into_iter()).flat_map(|z| reached(exp, z)).collect();
     let next = AtomicUsize::new(0);
     let mut tiles: Vec<_> = thread::scope(|s| {
         let workers: Vec<_> = (0..threads)
@@ -108,7 +106,7 @@ pub fn build(exp: &Expansion, threads: usize) -> Result<Vec<u8>, String> {
             "bbox": exp.bbox,
             "records": exp.records,
             "edges": exp.edges.len(),
-            "levels": tile::LEVELS,
+            "levels": LEVELS,
         },
     });
 
@@ -116,7 +114,7 @@ pub fn build(exp: &Expansion, threads: usize) -> Result<Vec<u8>, String> {
     let center = [(w + e) / 2.0, (s + n) / 2.0];
     let mut writer = PmTilesWriter::new(TileType::Mvt)
         .precompressed(Compression::Gzip)
-        // Gzipped: +30 ms on NY -> SF for 0.25 % less
+        // Gzip costs more time than it saves bytes here
         .internal_compression(Compression::None)
         .min_zoom(0)
         .max_zoom(MAX_ZOOM)
@@ -133,16 +131,13 @@ pub fn build(exp: &Expansion, threads: usize) -> Result<Vec<u8>, String> {
     Ok(buf.into_inner())
 }
 
-/// Highest of [`tile::LEVELS`] where world `bounds` fit one tile: a viewer opening the file lands on tiles.
+/// Highest of [`LEVELS`] where world `bounds` fit one tile: a viewer opening the file lands on tiles.
 fn center_zoom([x0, y0, x1, y1]: [f64; 4]) -> u8 {
     let fit = -(x1 - x0).max(y1 - y0).max(1e-9).log2();
-    tile::LEVELS
-        .into_iter()
-        .rfind(|&l| l as f64 <= fit)
-        .unwrap_or(0)
+    LEVELS.into_iter().rfind(|&l| l as f64 <= fit).unwrap_or(0)
 }
 
-/// One deflate state and output buffer per worker: setting a state up allocates ~400 KB.
+/// One deflate state and output buffer per worker: a state allocates its window and hash tables.
 struct Gzip {
     deflate: Deflate,
     out: Vec<u8>,
@@ -208,7 +203,7 @@ mod tests {
         Expansion::new(tree::build(&records), "auto".into())
     }
 
-    /// Malmö: a 630 m edge, a 31 m one (3 tile units at z9) and one with a vertex 0.9 units off
+    /// Malmo: a 630 m edge, a 31 m one (3 tile units at z9) and one with a vertex 0.9 units off
     /// the line at z12.
     const LONG: [i32; 4] = [13_000_000, 55_600_000, 13_010_000, 55_600_000];
     const SHORT: [i32; 4] = [13_020_000, 55_600_000, 13_020_500, 55_600_000];
@@ -278,7 +273,7 @@ mod tests {
     fn pyramid_has_every_tile_with_features() {
         let exp = fixture(&[&LONG, &SHORT, &BENT]);
         let tiles = pyramid(&exp, 4);
-        for z in tile::LEVELS {
+        for z in LEVELS {
             // Every tile around the fixture, rendered whether an edge's bounds touch it or not
             let (a, b) = (
                 tile_at(z, [LONG[0], LONG[1]]),

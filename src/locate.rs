@@ -235,7 +235,7 @@ fn edge_title(edge: &Value) -> String {
             .unwrap_or("road");
         format!("Unnamed {}", class.replace('_', " "))
     } else {
-        names.join(" · ")
+        names.join(" \u{b7} ")
     }
 }
 
@@ -254,16 +254,16 @@ fn clock(bucket_of_day: usize) -> String {
     format!("{:02}:{:02}", minutes / 60, minutes % 60)
 }
 
-/// Time span of buckets `start..end` (end exclusive), e.g. "Tue 08:15–08:45".
+/// Time span of buckets `start..end` (end exclusive), e.g. "Tue 08:15-08:45".
 fn span_label(start: usize, end: usize) -> String {
     if end <= start + 1 {
         return bucket_label(start);
     }
     if (end - 1) / BUCKETS_PER_DAY == start / BUCKETS_PER_DAY {
         let end_of_day = end - start / BUCKETS_PER_DAY * BUCKETS_PER_DAY;
-        format!("{}–{}", bucket_label(start), clock(end_of_day))
+        format!("{}-{}", bucket_label(start), clock(end_of_day))
     } else {
-        format!("{}–{}", bucket_label(start), bucket_label(end))
+        format!("{}-{}", bucket_label(start), bucket_label(end))
     }
 }
 
@@ -295,10 +295,10 @@ fn summarize(speeds: &[u32]) -> Option<WeekSummary> {
     })
 }
 
-/// "lowest 34 km/h · Tue 08:15–08:45".
+/// "lowest 34 km/h", then when, e.g. "Tue 08:15-08:45".
 fn lowest_label(s: &WeekSummary) -> String {
     let span = span_label(s.min_start, s.min_end);
-    format!("lowest {} km/h · {span}", s.min)
+    format!("lowest {} km/h \u{b7} {span}", s.min)
 }
 
 // Chart geometry in SVG user units; the JS readout reads these from data attributes.
@@ -378,7 +378,7 @@ fn speeds_section(edge: &Value) -> Markup {
             div.loc-predicted-head {
                 strong { "Predicted speeds" }
                 button.btn-link.loc-lowest type="button" data-act="lowest" title="Show this bucket" { (lowest_label(&summary)) }
-                span.muted { "highest " (summary.max) " · mean " (format!("{:.0}", summary.mean)) }
+                span.muted { "highest " (summary.max) " \u{b7} mean " (format!("{:.0}", summary.mean)) }
             }
             output.loc-readout aria-live="polite" {
                 "Hover or use arrow keys to read a 5-minute bucket"
@@ -470,9 +470,9 @@ fn render(params: &Params, response: &Value) -> Markup {
             p.loc-note {
                 "Snapped to node "
                 span.mono { (graph_id_text(node, "/node_id").unwrap_or_default()) }
-                " · " (text(node, "/type").unwrap_or("node").replace('_', " "))
-                " · " (num(node, "/edge_count").unwrap_or(0.0)) " edges"
-                @if flag(node, "/traffic_signal") { " · traffic signal" }
+                " \u{b7} " (text(node, "/type").unwrap_or("node").replace('_', " "))
+                " \u{b7} " (num(node, "/edge_count").unwrap_or(0.0)) " edges"
+                @if flag(node, "/traffic_signal") { " \u{b7} traffic signal" }
             }
         }
         div.loc-tabs role="tablist" aria-label="Candidate edges" {
@@ -481,9 +481,9 @@ fn render(params: &Params, response: &Value) -> Markup {
                 @let title = edge_title(c.value);
                 button.loc-tab.is-filtered[c.filtered] type="button" role="tab" data-i=(i)
                     aria-selected=(if i == selected { "true" } else { "false" })
-                    title={(title) ", heading " (heading) "°" @if c.filtered { ", filtered out" }}
+                    title={(title) ", heading " (heading) "\u{b0}" @if c.filtered { ", filtered out" }}
                 {
-                    span.loc-dir style={"transform:rotate(" (heading) "deg)"} aria-hidden="true" { "↑" }
+                    span.loc-dir style={"transform:rotate(" (heading) "deg)"} aria-hidden="true" { "\u{2191}" }
                     span.loc-tab-name { (title) }
                 }
             }
@@ -524,7 +524,7 @@ fn speed_cell(label: &str, value: Option<String>) -> Markup {
             span.muted { (label) }
             @match value {
                 Some(v) => span { (v) },
-                None => span.muted { "–" },
+                None => span.muted { "-" },
             }
         }
     }
@@ -602,9 +602,9 @@ fn candidate_panel(
                 strong { (edge_title(e)) }
                 span.muted {
                     (class.replace('_', " "))
-                    @if use_ != "road" { " · " (use_.replace('_', " ")) }
+                    @if use_ != "road" { " \u{b7} " (use_.replace('_', " ")) }
                     @if let Some(m) = num(e, "/edge/geo_attributes/length") {
-                        " · " @if m >= 1000.0 { (format!("{:.2} km", m / 1000.0)) } @else { (format!("{m:.0} m")) }
+                        " \u{b7} " @if m >= 1000.0 { (format!("{:.2} km", m / 1000.0)) } @else { (format!("{m:.0} m")) }
                     }
                 }
             }
@@ -621,7 +621,7 @@ fn candidate_panel(
                         (graph_id_text(e, "/edge_id").unwrap_or_else(|| "?".into()))
                     }
                     @if let Some(end) = graph_id_text(e, "/edge/end_node") {
-                        span.muted { " → node " span.mono { (end) } }
+                        span.muted { " \u{2192} node " span.mono { (end) } }
                     }
                 }
                 dt { "Speeds" }
@@ -660,10 +660,10 @@ fn candidate_panel(
                     span.muted {
                         (text(e, "/edge/classification/surface").unwrap_or("?").replace('_', " "))
                         @let lanes = num(e, "/edge/lane_count").unwrap_or(0.0);
-                        " · " (lanes) @if lanes == 1.0 { " lane" } @else { " lanes" }
-                        @if let Some(g) = num(e, "/edge/geo_attributes/weighted_grade") { " · grade " (format!("{g:.1}")) "%" }
-                        @if let Some(cl) = text(e, "/edge/cycle_lane").filter(|v| *v != "none") { " · cycle lane " (cl) }
-                        @if let Some(s) = text(e, "/edge/sac_scale").filter(|v| *v != "none") { " · sac " (s) }
+                        " \u{b7} " (lanes) @if lanes == 1.0 { " lane" } @else { " lanes" }
+                        @if let Some(g) = num(e, "/edge/geo_attributes/weighted_grade") { " \u{b7} grade " (format!("{g:.1}")) "%" }
+                        @if let Some(cl) = text(e, "/edge/cycle_lane").filter(|v| *v != "none") { " \u{b7} cycle lane " (cl) }
+                        @if let Some(s) = text(e, "/edge/sac_scale").filter(|v| *v != "none") { " \u{b7} sac " (s) }
                     }
                     @if !flags.is_empty() {
                         span.loc-badges { @for f in &flags { span.badge.is-flag { (f) } } }
@@ -671,15 +671,15 @@ fn candidate_panel(
                 }
                 dt { "Snap" }
                 dd {
-                    (text(e, "/side_of_street").unwrap_or("?")) " side · "
-                    (format!("{:.0}", num(e, "/percent_along").unwrap_or(0.0) * 100.0)) "% along · "
-                    (format!("{:.1}", num(e, "/distance").unwrap_or(0.0))) " m away · heading "
-                    (format!("{:.0}", num(e, "/heading").unwrap_or(0.0))) "°"
+                    (text(e, "/side_of_street").unwrap_or("?")) " side \u{b7} "
+                    (format!("{:.0}", num(e, "/percent_along").unwrap_or(0.0) * 100.0)) "% along \u{b7} "
+                    (format!("{:.1}", num(e, "/distance").unwrap_or(0.0))) " m away \u{b7} heading "
+                    (format!("{:.0}", num(e, "/heading").unwrap_or(0.0))) "\u{b0}"
                 }
                 @if e.get("outbound_reach").is_some() || e.get("inbound_reach").is_some() {
                     dt { "Reach" }
                     dd {
-                        "out " (num(e, "/outbound_reach").unwrap_or(0.0)) " · in " (num(e, "/inbound_reach").unwrap_or(0.0))
+                        "out " (num(e, "/outbound_reach").unwrap_or(0.0)) " \u{b7} in " (num(e, "/inbound_reach").unwrap_or(0.0))
                         span.muted { " nodes" }
                     }
                 }
@@ -704,9 +704,9 @@ mod tests {
         assert_eq!(bucket_label(2015), "Sat 23:55");
         // Tuesday 08:15 = 2 days + 99 buckets
         assert_eq!(span_label(675, 676), "Tue 08:15");
-        assert_eq!(span_label(675, 681), "Tue 08:15–08:45");
-        assert_eq!(span_label(286, 288), "Sun 23:50–24:00");
-        assert_eq!(span_label(286, 290), "Sun 23:50–Mon 00:10");
+        assert_eq!(span_label(675, 681), "Tue 08:15-08:45");
+        assert_eq!(span_label(286, 288), "Sun 23:50-24:00");
+        assert_eq!(span_label(286, 290), "Sun 23:50-Mon 00:10");
     }
 
     #[test]
@@ -720,7 +720,7 @@ mod tests {
         week[1500] = 110;
         let s = summarize(&week).unwrap();
         assert_eq!((s.min, s.max, s.min_start, s.min_end), (34, 110, 675, 681));
-        assert_eq!(lowest_label(&s), "lowest 34 km/h · Tue 08:15–08:45");
+        assert_eq!(lowest_label(&s), "lowest 34 km/h \u{b7} Tue 08:15-08:45");
 
         let flat = summarize(&[50; 288]).unwrap();
         assert_eq!((flat.min_start, flat.min_end), (0, 288));
@@ -787,7 +787,7 @@ mod tests {
             svg.contains(">80</text>") && svg.contains(">20</text>"),
             "highest and lowest labeled"
         );
-        assert!(svg.contains("lowest 20 km/h · Mon 01:00"));
+        assert!(svg.contains("lowest 20 km/h \u{b7} Mon 01:00"));
     }
 
     #[test]

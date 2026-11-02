@@ -19,11 +19,6 @@ const DETAIL_ZOOM: u8 = 10;
 const SIMPLIFY_UNITS: f64 = 2.0;
 pub const LAYER: &str = "edges";
 
-/// Every second level and [`MAX_ZOOM`]; the page stretches the parent over a skipped one. 41 % fewer
-/// bytes, but edges the parent dropped as sub-pixel go missing at up to ~2 px.
-pub const LEVELS: [u8; 7] = [0, 2, 4, 6, 8, 10, MAX_ZOOM];
-
-/// One rendered tile.
 pub struct Rendered {
     pub bytes: Vec<u8>,
     pub features: usize,

@@ -1,5 +1,5 @@
 //! Search expansion: Valhalla `/expansion` events to one PMTiles archive of the explored edges.
-//! Tiles, as GeoJSON of Malmö -> Stockholm is ~25 MB.
+//! Tiles, as GeoJSON of a long route is several times bigger and slower.
 
 mod archive;
 mod tile;
@@ -26,9 +26,11 @@ use crate::{
 };
 use tree::{Algorithm, Edge, Record, Status};
 
-/// Highest zoom with real tiles, MapLibre overzooms above. Picked by eye at street zoom: z10-z11 lines visibly
-/// drift from the road at junctions, z13 is barely different from z12 for ~35 % more bytes.
-pub const MAX_ZOOM: u8 = 12;
+/// The page stretches the parent over a skipped level: almost half the size without a visible difference.
+/// z12 is precise enough, lower ones drift from the road at junctions.
+pub const LEVELS: [u8; 7] = [0, 2, 4, 6, 8, 10, 12];
+/// MapLibre overzooms above.
+pub const MAX_ZOOM: u8 = LEVELS[LEVELS.len() - 1];
 /// Grid cells along the longer side of the expansion bounds.
 const GRID_CELLS: f64 = 256.0;
 /// Tile `seq` is quantized to this many steps so the MVT value tables stay small.

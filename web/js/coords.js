@@ -24,8 +24,8 @@ function checked(lat, lon) {
   lat = Number(lat);
   lon = Number(lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error("Coordinates must be numbers");
-  if (Math.abs(lat) > 90) throw new Error(`Latitude ${lat} is out of range, it must be within ±90`);
-  if (Math.abs(lon) > 180) throw new Error(`Longitude ${lon} is out of range, it must be within ±180`);
+  if (Math.abs(lat) > 90) throw new Error(`Latitude ${lat} is out of range, it must be within [-90, 90]`);
+  if (Math.abs(lon) > 180) throw new Error(`Longitude ${lon} is out of range, it must be within [-180, 180]`);
   return { lat: round6(lat), lon: round6(lon) };
 }
 

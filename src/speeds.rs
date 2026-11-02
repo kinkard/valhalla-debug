@@ -87,7 +87,7 @@ fn zoom_filter(z: u8) -> (&'static [u8], u8) {
         0..MIN_ZOOM => (&[], 0),
         // Highway level is motorway..primary, but primaries fill a whole z6-7 tile with noise
         6..=7 => (&[level::HIGHWAY], 1),
-        // Tertiaries take a dense city z9 tile from 1.5 to 2.3 MB
+        // Tertiaries bloat dense city tiles
         8..=9 => (&[level::HIGHWAY, level::ARTERIAL], 3),
         10..=11 => (&[level::HIGHWAY, level::ARTERIAL], 4),
         12 => (&[level::HIGHWAY, level::ARTERIAL, level::LOCAL], 5),
@@ -96,8 +96,7 @@ fn zoom_filter(z: u8) -> (&'static [u8], u8) {
     }
 }
 
-/// Meters around the tile to find edges crossing it: half the longest edges, 25 km on highway and
-/// arterial levels, 99.99% of local ones under 7 km (Scandinavia and Germany).
+/// Meters around the tile to find edges crossing it: about half the longest edges of the level.
 fn level_margin(level: u8) -> f64 {
     match level {
         level::HIGHWAY | level::ARTERIAL => 15_000.0,
@@ -255,10 +254,8 @@ fn edge_props<'a>(tile: &GraphTile, de: &DirectedEdge, t: Option<u32>) -> Vec<(&
     }
     props
 }
-/// Graph tiles whose edges are indexed, most recently used first. ~10 bytes per drivable edge, ~6 MB
-/// for a highway tile.
 const CACHED_TILES: usize = 32;
-
+/// Edge indexes of graph tiles, most recently used first.
 static CACHE: Mutex<VecDeque<(TileId, Arc<OnceLock<TileEdges>>)>> = Mutex::new(VecDeque::new());
 
 /// Built outside the cache lock by the first request, the other requests for the tile wait for it.

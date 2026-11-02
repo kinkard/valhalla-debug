@@ -51,7 +51,7 @@ function run() {
   const spec = app.request.spec();
   abort();
   const ctl = (controller = new AbortController());
-  setAside("Routing…");
+  setAside("Routing...");
   panel.classList.add("rt-loading");
   const headers = { "content-type": "application/json" };
   fetch("/ui/route", { method: "POST", headers, body: JSON.stringify(spec), signal: ctl.signal })
@@ -166,7 +166,7 @@ function onSwap() {
   if (alt !== app.state.get("alt")) app.state.set({ alt });
   select(alt);
   fitIfOffscreen(routes);
-  app.status(`${routes.length === 1 ? "1 route" : `${routes.length} routes`} ·\u2009 ${meta.ms} ms`);
+  app.status(`${routes.length === 1 ? "1 route" : `${routes.length} routes`} \u00b7\u2009 ${meta.ms} ms`);
   app.emit("route:loaded", { units: meta.units, routes });
 }
 

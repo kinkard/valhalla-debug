@@ -3,7 +3,6 @@
 import { formatLatLon, parseLatLon, round6, typed, untyped } from "./coords.js";
 import { el as h } from "./dom.js";
 
-/** Location types, see `Location` in src/openapi.yaml. */
 const TYPES = [
   { value: "break", label: "Break", hint: "Ends a leg, u-turns allowed" },
   { value: "through", label: "Through", hint: "No new leg, no u-turn" },
@@ -239,7 +238,7 @@ function updateRow(row, wp, i, n) {
   row.badge.dataset.type = type;
   const label = TYPES.find((t) => t.value === type)?.label ?? type;
   const typeLabel = type === "break" ? "" : `, ${label.toLowerCase()} point`;
-  row.badge.title = `${L}, ${nameOf(i, n)}${typeLabel}. Drag to reorder (Alt+↑/↓)`;
+  row.badge.title = `${L}, ${nameOf(i, n)}${typeLabel}. Drag to reorder (Alt+Up/Down)`;
   row.input.title = `${L}, ${nameOf(i, n)}: lat, lon`;
   row.removeBtn.title = n === 1 ? "Clear removes the last waypoint" : `Remove ${L}`;
   row.removeBtn.disabled = n === 1;
@@ -435,7 +434,7 @@ function buildOptions(row) {
     labeled("div", "Type", type),
     typeNote,
     labeled("div", "Side", side),
-    labeled("label", "Heading", heading, h("span", { class: "muted" }, "°")),
+    labeled("label", "Heading", heading, h("span", { class: "muted" }, "\u00b0")),
     labeled("label", "More", more),
     msg,
     h("div", { class: "wp-opts-foot" }, h("span", { class: "muted" }, "Empty fields use Valhalla defaults"), reset),
@@ -457,7 +456,7 @@ function renderMarkers() {
     m.label.textContent = letter(i);
     m.el.dataset.role = roleOf(i, n);
     m.el.dataset.type = effectiveType(wp[i], i, n);
-    m.el.title = `${letter(i)}, ${nameOf(i, n)} · ${formatLatLon(wp[i])}\nDrag to move`;
+    m.el.title = `${letter(i)}, ${nameOf(i, n)} \u00b7 ${formatLatLon(wp[i])}\nDrag to move`;
     m.el.style.zIndex = String(id === hotId ? 1000 : n - i);
   });
 }

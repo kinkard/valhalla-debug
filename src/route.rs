@@ -18,7 +18,7 @@ use crate::{
     valhalla::Error,
 };
 
-/// Trip attributes the directions and the profile don't need, a third of a long route (Valhalla 3.9.1).
+/// Trip attributes the directions and the profile don't need.
 const TRIP_EXCLUDE: [&str; 13] = [
     "node.time_zone",
     "edge.max_downward_grade",
@@ -330,7 +330,7 @@ impl Trip {
 
 const MINUS: char = '\u{2212}';
 
-/// Overpass draws `·` flush left, a thin space after it evens out the gaps.
+/// Overpass draws the middle dot flush left, a thin space after it evens out the gaps.
 const SEP: &str = " \u{b7}\u{2009} ";
 
 /// `45 s`, `18 min 36 s`, `5 h 47 min`.
@@ -541,7 +541,7 @@ fn route_details(index: usize, trip: &Trip, units: Units, warnings: &[CodedDescr
     }
 }
 
-/// `48 m · 4 s · cost 4.8 · toll`
+/// `48 m`, `4 s`, `cost 4.8` and `toll`, dot-separated.
 fn maneuver_meta(m: &proto::directions_leg::Maneuver, cost: f64, units: Units) -> String {
     let mut out = format!(
         "{}{SEP}{}{SEP}cost {cost:.1}",
@@ -744,7 +744,7 @@ mod tests {
         let options = options(json!({ "alternates": 2 }));
         let html =
             render_panel(&options, &routes(api(), &options).unwrap(), &[], 143).into_string();
-        assert!(html.contains("1 route ·\u{2009} 143 ms"));
+        assert!(html.contains("1 route \u{b7}\u{2009} 143 ms"));
         assert!(html.contains(r#"data-index="0" aria-pressed="true""#));
         assert!(html.contains("1 min 30 s") && html.contains("1.5 km") && html.contains("140"));
         assert!(html.contains("Toll") && html.contains("Border"));
@@ -814,7 +814,7 @@ mod tests {
             ..Error::new(StatusCode::BAD_REQUEST, "No suitable edges near location")
         };
         let html = error_panel(&err, 12).into_string();
-        assert!(html.contains("Failed ·\u{2009} 12 ms"));
+        assert!(html.contains("Failed \u{b7}\u{2009} 12 ms"));
         assert!(html.contains("(error_code 171)"));
         assert!(html.contains("too far from any road"));
         assert!(!html.contains("rt-meta"));

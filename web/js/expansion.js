@@ -34,7 +34,7 @@ const num = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format;
 function joined(items) {
   return items
     .filter(Boolean)
-    .flatMap((item, i) => (i ? [el("span", { class: "exp-sep", "aria-hidden": "true" }, "·"), item] : [item]));
+    .flatMap((item, i) => (i ? [el("span", { class: "exp-sep", "aria-hidden": "true" }, "\u00b7"), item] : [item]));
 }
 
 function canRun() {
@@ -121,7 +121,7 @@ function removeMapData() {
   if (map.getSource(SOURCE)) map.removeSource(SOURCE);
 }
 
-// The filter re-lays out the loaded tiles in the workers (~50 ms for 168k edges): one update per frame
+// The filter re-lays out the loaded tiles in the workers: one update per frame
 let frame = 0;
 function setEvent(t) {
   current.t = t;
@@ -198,7 +198,7 @@ function closeButton(title) {
   return el(
     "button",
     { class: "btn btn-ghost btn-icon", type: "button", title, "aria-label": title, onclick: clear },
-    "×",
+    "\u00d7",
   );
 }
 
@@ -213,7 +213,7 @@ function showLoading() {
   if (current) return;
   dock.replaceChildren(
     head(
-      el("span", { class: "exp-meta muted" }, "Running the search…"),
+      el("span", { class: "exp-meta muted" }, "Running the search..."),
       el("button", { class: "btn btn-ghost", type: "button", onclick: clear }, "Cancel"),
     ),
     el("div", { class: "exp-loading", "aria-hidden": "true" }),

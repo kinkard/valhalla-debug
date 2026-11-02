@@ -151,7 +151,7 @@ function buildDock() {
   const closeBtn = el(
     "button",
     { class: "btn btn-ghost btn-icon", type: "button", "aria-label": "Close the profile", title: "Close (Esc)" },
-    "×",
+    "\u00d7",
   );
   closeBtn.addEventListener("click", close);
   const head = el("div", { class: "pf-head" }, el("h2", { class: "panel-title" }, "Route profile"), closeBtn);
@@ -400,7 +400,7 @@ function renderTip(d, px, anchor) {
     const g = speed[i].segments && segmentAt(speed[i].segments, d);
     const v = elev[i].samples && sampleAt(elev[i].samples, d);
     const height = v != null && el("span", {}, `${fmt(v)} ${u.elev}`);
-    return row(el("strong", {}, g ? `${fmt(g.speed)} ${u.speed}` : "–"), height);
+    return row(el("strong", {}, g ? `${fmt(g.speed)} ${u.speed}` : "-"), height);
   });
   els.tip.replaceChildren(...rows);
   els.tip.hidden = false;

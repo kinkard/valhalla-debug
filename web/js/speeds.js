@@ -226,11 +226,11 @@ function clearHover() {
   popup?.remove();
 }
 
-/** The edge's speeds at a glance, km/h; "–" for no data. */
+/** The edge's speeds at a glance, km/h; a dash for no data. */
 function tooltip(p) {
-  const v = (x) => x ?? "–";
+  const v = (x) => x ?? "-";
   const t = value().t;
-  const at = mode() === "pred" && t != null ? ` · ${formatTime(t)} ${v(p.p)}` : "";
+  const at = mode() === "pred" && t != null ? ` \u00b7 ${formatTime(t)} ${v(p.p)}` : "";
   const current = p[MODES[mode()].value?.[1]];
   let note = null;
   if (mode() === "live" && current === 0) note = "Closed by live traffic";
@@ -238,8 +238,8 @@ function tooltip(p) {
   return el(
     "div",
     {},
-    el("div", {}, `${v(p.lim)} limit · ${p.sp} edge`),
-    el("div", {}, `night ${v(p.ff)} · day ${v(p.cf)}`),
+    el("div", {}, `${v(p.lim)} limit \u00b7 ${p.sp} edge`),
+    el("div", {}, `night ${v(p.ff)} \u00b7 day ${v(p.cf)}`),
     el("div", {}, `live ${p.live === 0 ? "closed" : v(p.live)}${at}`),
     note && el("div", { class: "speeds-tip-ratio" }, note),
   );

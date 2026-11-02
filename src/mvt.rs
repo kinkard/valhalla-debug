@@ -125,7 +125,7 @@ impl Geometry {
     }
 }
 
-/// Liang-Barsky clipping of segment `a`-`b` against the square `[lo, hi]²`.
+/// Liang-Barsky clipping of segment `a`-`b` against the square `[lo, hi]^2`.
 /// Returns the clipped segment and whether its end was cut off (so the line leaves the box).
 fn clip_segment(a: [f64; 2], b: [f64; 2], lo: f64, hi: f64) -> Option<([f64; 2], [f64; 2], bool)> {
     let d = [b[0] - a[0], b[1] - a[1]];

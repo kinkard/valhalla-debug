@@ -151,7 +151,7 @@ async function load(card) {
   const params = new URLSearchParams({ lat: card.lat, lon: card.lon, spec: JSON.stringify(spec) });
   if (card.edge) params.set("edge", card.edge);
 
-  card.el.replaceChildren(headerElement(card, `${spec.costing} · locating edges…`));
+  card.el.replaceChildren(headerElement(card, `${spec.costing} \u00b7 locating edges...`));
   let body;
   try {
     // Errors come with a card body too
@@ -169,7 +169,7 @@ async function load(card) {
   card.el.replaceChildren(headerElement(card, spec.costing));
   card.el.insertAdjacentHTML("beforeend", body);
   const n = card.el.querySelectorAll(".loc-tab").length;
-  if (n) card.el.querySelector(".loc-where .muted").textContent += ` · ${n === 1 ? "1 edge" : `${n} edges`}`;
+  if (n) card.el.querySelector(".loc-where .muted").textContent += ` \u00b7 ${n === 1 ? "1 edge" : `${n} edges`}`;
   const panel = card.el.querySelector(".loc-panel:not([hidden])");
   if (panel?.dataset.edge && card.edge !== panel.dataset.edge) {
     card.edge = panel.dataset.edge;
@@ -319,9 +319,9 @@ function showBucket(svg, bucket) {
   const min = speeds[+svg.dataset.min];
   const delta = speeds[bucket] - min;
   readout.textContent =
-    `${formatTime(bucket * 300)} · ${speeds[bucket]} km/h · bucket ${bucket}` +
-    (delta ? ` · +${delta} over the lowest` : " · the lowest") +
-    (svg._pinned === bucket ? " · pinned" : "");
+    `${formatTime(bucket * 300)} \u00b7 ${speeds[bucket]} km/h \u00b7 bucket ${bucket}` +
+    (delta ? ` \u00b7 +${delta} over the lowest` : " \u00b7 the lowest") +
+    (svg._pinned === bucket ? " \u00b7 pinned" : "");
 }
 
 /** Shows `bucket` on `svg` and the same bucket on every other visible chart, to compare cards. */

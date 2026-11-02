@@ -27,7 +27,7 @@ static OPTIONS: LazyLock<Value> = LazyLock::new(|| {
     serde_json::from_str(include_str!("options.json")).expect("options.json parses")
 });
 
-/// An option: its name and its type, range and default.
+/// `schema` is its entry in `options.json`.
 struct Opt {
     name: &'static str,
     schema: &'static Value,
@@ -258,7 +258,7 @@ fn key_markup(key: &str) -> Markup {
 fn reset_button(path: &str) -> Markup {
     html! {
         button.btn.btn-ghost.btn-icon.prow-reset type="button" data-reset=(path)
-            title="Reset to default" aria-label={"Reset " (path)} { "×" }
+            title="Reset to default" aria-label={"Reset " (path)} { "\u{d7}" }
     }
 }
 
