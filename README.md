@@ -1,23 +1,18 @@
 # About
 
-Valhalla Debug is a tool for debugging Valhalla routes and investigating routing/data issues:
-why did the router pick this road, and why not that one?
+Valhalla Debug is a tool for debugging Valhalla routes and investigating routing/data issues. It allows you to:
 
-- **Build a route and experiment with options.** Right-click the map to set a start, a destination
-  or a stop; drag markers or reorder the waypoint list. The route re-runs as you change waypoints or
-  options. Options form fields are empty by default and show Valhalla's default as a placeholder,
-  so only the options you change are sent and put into the URL.
-- **Compare alternates.** Time, distance and cost of each route side by side, the best of each in bold.
-- **Locate.** Right-click → "Locate here" shows the edges Valhalla's `/locate` snaps to,
-  with decoded access, speeds and the full week of predicted speeds.
-- **See speeds.** "Road speeds" at the top right of the map (needs `--valhalla-tiles`): live traffic
-  (with `--valhalla-traffic`), predicted speeds at any 5-minute slot of the week, or typical day and
-  night speeds. Hover an edge for all its speeds, click it for its week. Served as vector tiles from
-  the tileset.
-- **Debug the search.** "Run expansion" under the routes colors every edge Valhalla's search
-  explored, by search tree and search order: a road left uncolored next to colored ones shows where
-  a restriction or a mapping error kept the search out. Right-click it → "Locate here" to see why.
-  A slider replays the search up to any event.
+- **Build a route and experiment with different parameters.** Right-click the map for waypoints, drag them,
+  compare alternates.
+- **Visualize route expansion.** Every edge the search explored, colored by search tree and order. The slider
+  replays the search to find problem spots in the road graph.
+- **Investigate road graph edges.** Right-click, "Locate here": the edges Valhalla snaps to, their access and
+  a week of speeds.
+- **View traffic data.** Live, predicted, day and night speeds from the tileset, if provided.
+
+<img width="1512" height="859" alt="Valhalla Debug page" src="https://github.com/user-attachments/assets/470521dd-903c-49ed-a66f-0cd440a916d1" />
+
+*Expansion graph for a route with 3 alternatives.*
 
 ```
 $ ./valhalla-debug --help
@@ -46,20 +41,17 @@ Options:
 cargo run --release -- --valhalla-tiles /path/to/tiles.tar
 ```
 
-Point `--valhalla-url` at a Valhalla service that uses the same tileset. Without `--valhalla-tiles`
-routing, alternates, locate and expansion still work, but speed tiles don't.
-
 ## URL format
 
-Everything you see is in the URL hash, so a link reproduces it. Parameters are `&`-separated:
+The URL hash holds the whole page state, so a link reproduces it:
 
 | Parameter | Example | Meaning |
 |---|---|---|
-| `map` | `11/55.668/13.158` | zoom/lat/lon of the map view |
-| `wp` | `55.605,13.0038;55.7047,13.191!type=through` | waypoints as `lat,lon`, `;`-separated, per-location options as `!key=value` |
-| `costing` | `truck` | costing model, `auto` when absent |
+| `map` | `11/55.668/13.158` | zoom/lat/lon |
+| `wp` | `55.605,13.0038;55.7047,13.191!type=through` | `;`-separated waypoints, location options as `!key=value` |
+| `costing` | `truck` | `auto` when absent |
 | `alt` | `1` | selected route, 0 is the primary |
-| anything else | `alternates=0`, `date_time.type=1`, `co.use_highways=0.2` | request options by dot path; `co.` is `costing_options.<costing>.`. Only options that differ from the defaults appear: Valhalla's, except `alternates`, which defaults to 2 here |
+| other | `alternates=0`, `co.use_highways=0.2` | changed request options; `co.` is `costing_options.<costing>.` |
 
 ## License
 
