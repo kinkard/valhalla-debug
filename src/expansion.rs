@@ -184,6 +184,10 @@ pub async fn run(State(state): State<AppState>, Json(spec): Json<Spec>) -> Resul
     })
     .await
     .map_err(internal)??;
+    // Expansion can easilly have more than ~1M events and prost makes equal amount of small allocations,
+    // which glibc keeps in its per-thread arenas. Hand them back to the OS without delaying the response
+    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+    tokio::task::spawn_blocking(|| unsafe { libc::malloc_trim(0) });
     Ok((
         [
             (header::CONTENT_TYPE, archive::CONTENT_TYPE),
