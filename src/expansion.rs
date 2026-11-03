@@ -151,7 +151,7 @@ pub async fn run(State(state): State<AppState>, Json(spec): Json<Spec>) -> Resul
     let pbf = state.post("expansion", &api).await?;
     let valhalla_ms = begin.elapsed().as_millis() as u64;
 
-    let (exp, decode_ms, dedupe_ms) = tokio::task::spawn_blocking(move || {
+    let bytes = tokio::task::spawn_blocking(move || {
         let t = Instant::now();
         let api = proto::Api::decode(pbf.as_ref())
             .map_err(|e| bad_gateway(format!("Bad expansion pbf: {e}")))?;
@@ -160,17 +160,13 @@ pub async fn run(State(state): State<AppState>, Json(spec): Json<Spec>) -> Resul
             .expansion
             .ok_or_else(|| bad_gateway("Valhalla returned no expansion".to_owned()))?;
         let records = records(&expansion).map_err(bad_gateway)?;
-        let decode_ms = t.elapsed().as_millis() as u64;
+        let decode_ms = t.elapsed().as_millis();
         let t = Instant::now();
         let tree = tree::build(&records);
         drop(records);
         drop(expansion);
         let exp = Expansion::new(tree, costing);
-        Ok::<_, Error>((exp, decode_ms, t.elapsed().as_millis() as u64))
-    })
-    .await
-    .map_err(internal)??;
-    let bytes = tokio::task::spawn_blocking(move || {
+        let dedupe_ms = t.elapsed().as_millis();
         let t = Instant::now();
         let bytes = archive::build(&exp, threads).map_err(internal)?;
         info!(
