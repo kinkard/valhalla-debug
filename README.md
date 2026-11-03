@@ -1,6 +1,6 @@
 # About
 
-Valhalla Debug is a tool for debugging Valhalla routes and investigating routing/data issues. It allows you to:
+Valhalla Debug is a tool for debugging [Valhalla](https://github.com/valhalla/valhalla) routes and investigating routing/data issues. It allows you to:
 
 - **Build a route and experiment with different parameters.** Right-click the map for waypoints, drag them,
   compare alternates.
